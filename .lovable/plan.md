@@ -1,48 +1,49 @@
 
 
-# Correcao da Logica de Novos Clientes no Cenario Pessimista
+# Melhorias na Visualizacao da Aba Aquisicao
 
-## Problema
+## Problemas Atuais
 
-No snapshot estatico (aba Investor), o calculo de novos clientes usa `newCustomers = base * churnRate`. No modo pessimista (churn 6%), isso resulta em MAIS novos clientes do que no moderado (churn 3.5%), o que e contraintuitivo para o usuario.
+1. **Grafico unico sobrecarregado**: 4 metricas com escalas muito diferentes (clientes vs R$) num unico grafico, tornando o CAC por cliente praticamente invisivel.
+2. **Linhas planas**: Como o solver calcula um numero constante de novos clientes/mes, "Novos clientes", "Marketing liquido" e "CAC" ficam como linhas retas horizontais — sem dinamismo visual.
+3. **Falta de contexto acumulado**: O investidor nao ve o investimento total acumulado em marketing ao longo dos 12 meses.
 
-- Moderado (200 clientes): `200 * 0.035 = 7 novos`
-- Pessimista (200 clientes): `200 * 0.06 = 12 novos`
+## Solucao Proposta
 
-O investidor le "12 novos no pessimista" e pensa: "como pessimista tem mais clientes novos?"
+Substituir o grafico unico por **3 graficos separados e complementares**, cada um com escala propria:
 
-## Causa Raiz
+### Grafico 1: Evolucao de Clientes (Area)
+- **Tipo**: AreaChart com gradiente
+- **Dados**: Clientes ativos (area preenchida) + Novos clientes/mes (linha)
+- **Objetivo**: Mostrar a curva de crescimento da base — unica metrica que realmente varia mes a mes
 
-O snapshot estatico assume estado estavel (novos = churn replacement). A logica matematica esta correta (precisa repor mais), mas a apresentacao confunde.
+### Grafico 2: Marketing Mensal vs Acumulado (ComposedChart)
+- **Tipo**: Barras + Linha
+- **Dados**: Marketing liquido mensal (barras) + Marketing acumulado (linha crescente)
+- **Objetivo**: Visualizar o investimento mensal e o total acumulado ao longo de 12 meses, dando nocao do "burn" total
 
-## Solucao
+### Grafico 3: CAC e Teste Pago (BarChart)
+- **Tipo**: Barras empilhadas
+- **Dados**: CAC bruto (barra) com destaque do abatimento do teste pago, mostrando o CAC liquido resultante
+- **Objetivo**: Ilustrar como o teste pago reduz o CAC efetivo — atualmente essa informacao esta escondida
 
-Manter o calculo de reposicao (e correto para o DRE estatico), mas:
+### KPIs Adicionais
+- Adicionar um 5o KPI: **"Investimento total 12 meses"** — soma acumulada do marketing liquido, para o investidor ter a visao do capital necessario
 
-1. **Renomear o campo** de "Novos no mes (estimado)" para "Novos necessarios (reposicao churn)" — deixando claro que e quantos PRECISA adquirir, nao quantos VAI adquirir.
+### Nota Explicativa Atualizada
+- Explicar que o modelo usa aquisicao constante (solver) e por isso os valores mensais sao fixos
+- Destacar que a variacao real esta no crescimento da base de clientes
 
-2. **Adicionar nota explicativa** no resumo do investidor dizendo que no pessimista o custo de reposicao e maior (mais novos necessarios + CAC x2).
+## Detalhes Tecnicos
 
-3. **Ajustar o KPI de "Clientes Ativos"** para incluir no subtitulo a quantidade de novos necessarios, dando contexto.
+### Arquivo: `src/components/dashboard/AcquisitionView.tsx`
 
-### Alteracoes
+1. Importar `Area`, `AreaChart`, `Bar`, `BarChart`, `ComposedChart` do recharts
+2. Calcular `marketingAccumulated` a partir de `projectionRows` com reduce acumulativo
+3. Criar 3 `Section` com `ResponsiveContainer` separados (height 260 cada)
+4. Adicionar KPI de investimento total: `projectionRows.reduce((acc, r) => acc + r.marketingNet, 0)`
 
-**Arquivo: `src/components/dashboard/InvestorView.tsx`**
+### Arquivo: `src/lib/financial-engine.ts`
 
-Na secao "1 tela / 8 numeros", alterar o label:
-- De: `"Novos no mes (estimado)"`
-- Para: `"Novos necessarios (repos. churn)"`
-
-Adicionar nota contextual apos os 8 numeros explicando:
-- "No cenario pessimista, o churn maior exige mais reposicoes, e o CAC dobrado encarece cada aquisicao — por isso o custo de marketing sobe desproporcionalmente."
-
-**Arquivo: `src/components/dashboard/FinancialDashboard.tsx`**
-
-Nenhuma alteracao no calculo — a logica de reposicao esta correta para o DRE estatico. O problema e de comunicacao, nao de calculo.
-
-## Impacto
-
-- Correcao apenas de labels e textos explicativos
-- Nenhuma mudanca no motor financeiro
-- O investidor entende que "pessimista" = precisa de mais reposicoes + cada uma custa o dobro
+Nenhuma alteracao — os dados ja existem no `MonthResult`, apenas precisam ser melhor apresentados.
 
