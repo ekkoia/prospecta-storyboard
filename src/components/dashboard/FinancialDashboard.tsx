@@ -38,8 +38,8 @@ export default function FinancialDashboard() {
   }, [churnRate, pessimisticCAC, hormoziImpact]);
 
   const currentStatic = useMemo(() => {
-    const target = scenarioTargets[scenario];
-    return staticScenarios.find((s) => s.activeCustomers === target) || staticScenarios[1];
+    const scenarioIndex = { "100": 0, "200": 1, "500": 2 } as const;
+    return staticScenarios[scenarioIndex[scenario]];
   }, [scenario, staticScenarios]);
 
   const projection = useMemo(() => {
