@@ -232,6 +232,11 @@ export function monthModel(params: {
   };
 }
 
+function rampWeight(month: number): number {
+  // month 1 = 0.5x average, month 12 = 1.5x average (linear)
+  return 0.5 + (1.0 * (month - 1)) / 11;
+}
+
 export function build12MonthProjection(opts: {
   startActive: number;
   targetActive: number;
@@ -240,27 +245,34 @@ export function build12MonthProjection(opts: {
   hormoziImpact: boolean;
 }) {
   const months = 12;
-  const solveNewPerMonth = () => {
+
+  // Solver: find avgNew such that ramped acquisition hits target
+  const solveRamp = (): number[] => {
     let low = 0, high = 2000;
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 40; i++) {
       const mid = (low + high) / 2;
       let active = opts.startActive;
-      for (let m = 1; m <= months; m++) active = active * (1 - opts.churnRate) + mid;
+      for (let m = 1; m <= months; m++) {
+        const newM = Math.round(mid * rampWeight(m));
+        active = active * (1 - opts.churnRate) + newM;
+      }
       if (active < opts.targetActive) low = mid; else high = mid;
     }
-    return Math.round(high);
+    const avg = high;
+    return Array.from({ length: months }, (_, i) => Math.round(avg * rampWeight(i + 1)));
   };
 
-  const newPerMonth = solveNewPerMonth();
+  const newSchedule = solveRamp();
+  const avgNewPerMonth = Math.round(newSchedule.reduce((a, b) => a + b, 0) / months);
   const rows: MonthResult[] = [];
   let activePrev = opts.startActive;
   for (let m = 1; m <= months; m++) {
     const r = monthModel({
-      month: m, activePrev, newTarget: newPerMonth,
+      month: m, activePrev, newTarget: newSchedule[m - 1],
       churnRate: opts.churnRate, pessimisticCAC: opts.pessimisticCAC, hormoziImpact: opts.hormoziImpact,
     });
     rows.push(r);
     activePrev = r.activeCustomers;
   }
-  return { rows, newPerMonth };
+  return { rows, newSchedule, avgNewPerMonth };
 }

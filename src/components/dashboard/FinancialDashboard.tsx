@@ -51,6 +51,7 @@ export default function FinancialDashboard() {
 
   const projectionRows = projection.rows;
   const last = projectionRows[projectionRows.length - 1];
+  const { newSchedule, avgNewPerMonth } = projection;
 
   const btnClass = (active: boolean) =>
     `px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -104,7 +105,7 @@ export default function FinancialDashboard() {
         </div>
 
         {tab === "investor" && <InvestorView currentStatic={currentStatic} churnRate={churnRate} staticScenarios={staticScenarios} />}
-        {tab === "acquisition" && <AcquisitionView projectionRows={projectionRows} newPerMonth={projection.newPerMonth} last={last} />}
+        {tab === "acquisition" && <AcquisitionView projectionRows={projectionRows} avgNewPerMonth={avgNewPerMonth} newSchedule={newSchedule} last={last} />}
         {tab === "monetization" && <MonetizationView projectionRows={projectionRows} last={last} />}
         {tab === "unit" && <UnitCostView last={last} />}
         {tab === "dre" && <DreView currentStatic={currentStatic} projectionRows={projectionRows} />}

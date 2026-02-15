@@ -8,11 +8,12 @@ import { Section } from "./Section";
 
 interface Props {
   projectionRows: MonthResult[];
-  newPerMonth: number;
+  avgNewPerMonth: number;
+  newSchedule: number[];
   last: MonthResult;
 }
 
-export function AcquisitionView({ projectionRows, newPerMonth, last }: Props) {
+export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, last }: Props) {
   // Dados com marketing acumulado
   const enrichedRows = projectionRows.reduce<(MonthResult & { marketingCumulative: number })[]>((acc, row, idx) => {
     const prev = idx > 0 ? acc[idx - 1].marketingCumulative : 0;
@@ -25,9 +26,10 @@ export function AcquisitionView({ projectionRows, newPerMonth, last }: Props) {
   return (
     <>
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-        <KpiCard title="Novos clientes/mês" value={`${newPerMonth}`} sub="constante (solver)" tone="orange" />
-        <KpiCard title="Marketing bruto (mês 12)" value={brl(last.marketingGross)} sub="gasto bruto do mês" tone="pink" />
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+        <KpiCard title="Novos clientes/mês" value={`${avgNewPerMonth}`} sub="média (rampa progressiva)" tone="orange" />
+        <KpiCard title={`Novos mês 1`} value={`${newSchedule[0]}`} sub="início da rampa" tone="orange" />
+        <KpiCard title={`Novos mês 12`} value={`${newSchedule[11]}`} sub="fim da rampa" tone="orange" />
         <KpiCard title="Teste pago (mês 12)" value={brl(last.paidTestRevenue)} sub="abatimento do CAC" tone="green" />
         <KpiCard title="CAC líquido (mês 12)" value={brl(last.cacBlendedNet)} sub="custo por cliente novo" tone="purple" />
         <KpiCard title="Investimento total 12m" value={brl(totalInvestment)} sub="marketing líquido acumulado" tone="blue" />
@@ -99,7 +101,7 @@ export function AcquisitionView({ projectionRows, newPerMonth, last }: Props) {
 
       {/* Nota explicativa */}
       <div className="mt-4 bg-slate-800/50 rounded-lg p-4 text-xs text-slate-400 leading-relaxed">
-        <span className="text-slate-200 font-semibold">ℹ️ Sobre o modelo:</span> A projeção usa aquisição constante (solver) — o número de novos clientes/mês é fixo para atingir a meta de 12 meses. Por isso, marketing e CAC mensais são constantes. A variação real está no <span className="text-amber-400 font-medium">crescimento acumulado da base</span> e no <span className="text-yellow-400 font-medium">investimento total acumulado</span>.
+        <span className="text-slate-200 font-semibold">ℹ️ Sobre o modelo:</span> A projeção usa uma <span className="text-amber-400 font-medium">rampa progressiva de aquisição</span> — o mês 1 começa com ~50% da média e o mês 12 atinge ~150%, simulando o aquecimento natural do marketing. O solver encontra a média ideal para atingir a meta de clientes ao final de 12 meses.
       </div>
     </>
   );
