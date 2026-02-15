@@ -93,6 +93,9 @@ export function UnitCostView({ last, projectionRows }: Props) {
         <div className="mt-3 text-xs text-slate-400 leading-relaxed">
           <span className="text-slate-200 font-semibold">Leitura:</span> À medida que a base cresce, os custos fixos se diluem por cliente, melhorando a margem líquida.
         </div>
+        <div className="mt-2 text-xs text-slate-400 leading-relaxed">
+          <span className="text-amber-400 font-semibold">Importante:</span> A margem líquida neste gráfico reflete a <strong className="text-white">fase de crescimento</strong> (50 → {activeCount} clientes), onde os custos de marketing e aquisição são maiores. A margem no <strong className="text-white">Investor View</strong> assume a base já estabilizada no target, com marketing apenas de reposição de churn — por isso é naturalmente mais alta.
+        </div>
       </Section>
 
       <Section title={`🧾 Custo por cliente — separado por plano (${activeCount} clientes ativos)`}>
