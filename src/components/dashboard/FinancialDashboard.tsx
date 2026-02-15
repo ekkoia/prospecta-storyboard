@@ -106,7 +106,7 @@ export default function FinancialDashboard() {
 
         {tab === "investor" && <InvestorView currentStatic={currentStatic} churnRate={churnRate} staticScenarios={staticScenarios} />}
         {tab === "acquisition" && <AcquisitionView projectionRows={projectionRows} avgNewPerMonth={avgNewPerMonth} newSchedule={newSchedule} last={last} />}
-        {tab === "monetization" && <MonetizationView projectionRows={projectionRows} last={last} />}
+        {tab === "monetization" && <MonetizationView projectionRows={projectionRows} last={last} mode={mode} />}
         {tab === "unit" && <UnitCostView last={last} />}
         {tab === "dre" && <DreView currentStatic={currentStatic} projectionRows={projectionRows} />}
 
