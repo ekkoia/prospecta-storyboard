@@ -1,69 +1,76 @@
 
 
-# Melhorias na Aba Monetizacao (Hormozi)
+# Melhorias na Aba Custo por Cliente
 
-## Problemas Identificados
+## Problemas Atuais
 
-1. **Dependencia oculta do modo**: Quando o usuario esta nos modos "Moderado" ou "Pessimista", todos os valores de Onboarding, Upsells e Voz sao zero. Os graficos ficam vazios/sobrepostos sem nenhum aviso ao usuario.
-2. **Grafico "Receita total vs Assinaturas"**: No modo nao-Hormozi, as duas areas sao identicas e ficam sobrepostas — confuso visualmente.
-3. **Grafico "Receita por componente"**: Sem Hormozi, 3 das 4 camadas sao zero — o grafico stacked perde sentido.
-4. **Mini-mapa Hormozi estatico**: Mostra apenas premissas fixas do ASSUMPTIONS, sem refletir valores reais calculados para o cenario atual.
-5. **Falta KPI de impacto**: Nao mostra quanto os Money Models adicionam sobre a receita pura de assinaturas (delta percentual).
+1. **Rateio fixo hardcoded em 500 clientes**: A tabela sempre calcula fixos divididos por 500, ignorando o cenario selecionado (100, 200, 500). Isso mostra valores errados nos cenarios menores.
+2. **Desconexao KPIs vs tabela**: KPIs usam dados reais do mes 12, mas a tabela usa premissas estaticas sem ligacao com o cenario.
+3. **Sem grafico de evolucao**: Todas as outras abas tem graficos de projecao 12 meses; esta aba so tem KPIs + tabela.
+4. **Falta margem bruta ponderada**: Nao mostra a margem bruta "real" considerando o mix de planos.
 
 ## Solucao Proposta
 
-### 1. Banner de contexto do modo ativo
+### 1. Tabela dinamica com cenario real
 
-Adicionar um alerta visual no topo da aba quando o modo NAO for Hormozi, explicando que os Money Models so aparecem no modo "Impacto Hormozi". Isso evita confusao com graficos vazios.
+Substituir o hardcoded `sumFixedCosts(500)` pelo numero real de clientes do mes 12 (`last.activeCustomers`). A tabela passa a refletir o cenario selecionado.
 
-### 2. KPIs aprimorados (5 cards)
+### 2. KPI adicional: Margem bruta ponderada
 
-Reorganizar os KPIs para contar uma historia melhor:
+Adicionar um 5o KPI mostrando a margem bruta media ponderada pelo mix de planos:
 
 | KPI | Valor | Sub |
 |-----|-------|-----|
-| Receita total (mes 12) | revenueTotal do last | soma de todas as fontes |
-| ARPU (mes 12) | arpu do last | ticket medio por cliente ativo |
-| Uplift Money Models | % de aumento sobre subscriptionRevenue | quanto os money models adicionam |
-| Upsells + Voz (mes 12) | upsellRevenue + voiceRevenue | receita recorrente adicional |
-| Onboarding (mes 12) | onboardingRevenue | receita nao recorrente |
+| Margem bruta ponderada | % | media considerando mix de planos |
 
-### 3. Mini-mapa Hormozi com valores reais
+Calculo: `sum(mix[k] * margemBruta[k])` para cada plano.
 
-Substituir os valores hardcoded por calculos reais do mes 12:
+### 3. Grafico de evolucao de custos (12 meses)
 
-- **Front-end**: Mostrar receita real do teste pago do mes 12 (paidTestRevenue)
-- **Upsell imediato**: Mostrar onboardingRevenue real do mes 12
-- **Continuidade**: Mostrar upsellRevenue real do mes 12
-- **Alavanca extra**: Mostrar voiceRevenue real do mes 12
+Adicionar um grafico `ComposedChart` mostrando a evolucao mensal:
 
-Cada card do mini-mapa passa a ter o valor calculado ao lado da descricao.
+- **Barras empilhadas**: COGS/cliente + Fixos/cliente (custo unitario total)
+- **Linha**: Margem liquida (eixo Y direito, em %)
 
-### 4. Grafico "Receita total vs Assinaturas" melhorado
+Isso mostra como a diluicao dos custos fixos melhora a margem a medida que a base cresce.
 
-- Adicionar uma terceira area: "Delta Money Models" (revenueTotal - subscriptionRevenue) para destacar visualmente a contribuicao dos money models
-- Quando delta for zero (modo nao-Hormozi), o grafico ainda faz sentido mostrando apenas assinaturas
+### 4. Passar `projectionRows` como prop
 
-### 5. Grafico de composicao com percentuais
+Atualmente a aba so recebe `last`. Para o grafico de evolucao, precisa de `projectionRows`.
 
-No grafico "Receita por componente", adicionar um tooltip customizado que mostre o percentual de cada componente sobre o total, alem do valor absoluto.
+### 5. Nota explicativa do cenario
+
+Adicionar texto indicando quantos clientes ativos estao sendo usados no rateio da tabela.
 
 ## Detalhes Tecnicos
 
-### Arquivo: `src/components/dashboard/MonetizationView.tsx`
+### Arquivo: `src/components/dashboard/UnitCostView.tsx`
 
-1. Importar `Bar`, `BarChart`, `ComposedChart`, `Line` adicionais do recharts
-2. Calcular `upliftPct` como `(last.revenueTotal - last.subscriptionRevenue) / last.subscriptionRevenue`
-3. Calcular `moneyModelsDelta` para cada row: `row.revenueTotal - row.subscriptionRevenue`
-4. Adicionar condicional para o banner: verificar se `last.onboardingRevenue === 0 && last.upsellRevenue === 0 && last.voiceRevenue === 0`
-5. Atualizar o mini-mapa para usar valores de `last` em vez de `ASSUMPTIONS` estaticos
+1. Atualizar Props: adicionar `projectionRows: MonthResult[]`
+2. Substituir `sumFixedCosts(500)` por `sumFixedCosts(last.activeCustomers)` na tabela
+3. Calcular margem bruta ponderada: iterar sobre planos com mix e calcular media
+4. Adicionar grafico com recharts (`ComposedChart`, `Bar`, `Line`, `ResponsiveContainer`)
+5. Importar `Section` para envolver o grafico
 6. Grid de KPIs passa de 4 para 5 colunas
+7. Nota da tabela passa a mostrar o numero real de clientes usado no rateio
 
 ### Arquivo: `src/components/dashboard/FinancialDashboard.tsx`
 
-Passar prop adicional `mode` para `MonetizationView` para que o componente saiba qual modo esta ativo e possa exibir o banner contextual.
+Passar `projectionRows` como prop adicional para `UnitCostView`:
+
+```text
+Antes:  <UnitCostView last={last} />
+Depois: <UnitCostView last={last} projectionRows={projectionRows} />
+```
 
 ### Nenhuma alteracao no engine
 
-Todos os dados necessarios ja existem no `MonthResult`. As melhorias sao puramente de apresentacao.
+Todos os dados necessarios (`cogsPerActive`, `fixedPerActive`, `unitCostPerActiveExMarketing`, `margin`) ja existem no `MonthResult`.
+
+### Estrutura do grafico de evolucao
+
+- Eixo X: Mes (1-12)
+- Eixo Y esquerdo: R$ (COGS/cliente e Fixos/cliente como barras empilhadas)
+- Eixo Y direito: % (Margem liquida como linha)
+- Tooltip customizado mostrando os 3 valores + custo unitario total
 
