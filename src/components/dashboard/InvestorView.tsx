@@ -34,7 +34,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <KpiCard title="Clientes Ativos" value={`${currentStatic.activeCustomers}`} sub={`Churn mensal: ${pct(churnRate)}`} tone="orange" />
+        <KpiCard title="Clientes Ativos" value={`${currentStatic.activeCustomers}`} sub={`Churn: ${pct(churnRate)} · Repos.: ${currentStatic.newCustomers}/mês`} tone="orange" />
         <KpiCard title="Receita Total" value={brl(currentStatic.revenueTotal)} sub="Recorrência + Money Models" tone="green" />
         <KpiCard title="Lucro Líquido" value={brl(currentStatic.profit)} sub={`Margem: ${pct(currentStatic.margin)}`} tone="blue" />
         <KpiCard title="CAC por Cliente (blended)" value={brl(currentStatic.cacBlendedNet)} sub="CAC líquido = marketing líquido / novos" tone="purple" />
@@ -45,7 +45,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             {[
               ["Clientes ativos", `${currentStatic.activeCustomers}`],
-              ["Novos no mês (estimado)", `${currentStatic.newCustomers}`],
+              ["Novos necessários (repos. churn)", `${currentStatic.newCustomers}`],
               ["MRR (assinaturas)", brl(currentStatic.subscriptionRevenue)],
               ["Receita total", brl(currentStatic.revenueTotal)],
               ["Marketing bruto do mês", brl(currentStatic.marketingGross)],
@@ -59,8 +59,9 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
               </div>
             ))}
           </div>
-          <div className="mt-3 text-xs text-slate-400 leading-relaxed">
-            <span className="text-slate-200 font-semibold">Tradução:</span> aqui ninguém confunde CAC com gasto mensal. CAC é por cliente. Marketing é gasto do mês.
+          <div className="mt-3 text-xs text-slate-400 leading-relaxed space-y-1">
+            <div><span className="text-slate-200 font-semibold">Tradução:</span> aqui ninguém confunde CAC com gasto mensal. CAC é por cliente. Marketing é gasto do mês.</div>
+            <div><span className="text-yellow-400 font-semibold">⚠ Pessimista:</span> churn maior exige mais reposições, e o CAC dobrado encarece cada aquisição — por isso o custo de marketing sobe desproporcionalmente.</div>
           </div>
         </Section>
 
