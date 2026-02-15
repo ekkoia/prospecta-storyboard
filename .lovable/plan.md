@@ -1,47 +1,48 @@
 
 
-# Correcao do Bug: Cenario Fixo em 200 no Modo Moderado
+# Correcao da Logica de Novos Clientes no Cenario Pessimista
 
-## Problema Identificado
+## Problema
 
-Na aba "Investor View", ao selecionar os cenarios 100 ou 500 no modo Moderado, os dados ficam fixados no cenario de 200.
+No snapshot estatico (aba Investor), o calculo de novos clientes usa `newCustomers = base * churnRate`. No modo pessimista (churn 6%), isso resulta em MAIS novos clientes do que no moderado (churn 3.5%), o que e contraintuitivo para o usuario.
 
-**Causa raiz:** O `currentStatic` tenta encontrar o cenario correto comparando `activeCustomers === target`. Porem, o calculo do `monthModel` aplica churn e novos clientes, resultando em valores ligeiramente diferentes do target original:
+- Moderado (200 clientes): `200 * 0.035 = 7 novos`
+- Pessimista (200 clientes): `200 * 0.06 = 12 novos`
 
-- 100 clientes -> `activeCustomers = 101` (nao bate com 100)
-- 200 clientes -> `activeCustomers = 200` (bate por coincidencia)
-- 500 clientes -> `activeCustomers = 501` (nao bate com 500)
+O investidor le "12 novos no pessimista" e pensa: "como pessimista tem mais clientes novos?"
 
-Quando o `find` falha, o fallback `staticScenarios[1]` sempre retorna o cenario de 200.
+## Causa Raiz
+
+O snapshot estatico assume estado estavel (novos = churn replacement). A logica matematica esta correta (precisa repor mais), mas a apresentacao confunde.
 
 ## Solucao
 
-Alterar o `currentStatic` para usar o indice do array baseado no cenario selecionado, em vez de buscar pelo valor de `activeCustomers`.
+Manter o calculo de reposicao (e correto para o DRE estatico), mas:
 
-### Alteracao em `src/components/dashboard/FinancialDashboard.tsx`
+1. **Renomear o campo** de "Novos no mes (estimado)" para "Novos necessarios (reposicao churn)" — deixando claro que e quantos PRECISA adquirir, nao quantos VAI adquirir.
 
-Substituir:
+2. **Adicionar nota explicativa** no resumo do investidor dizendo que no pessimista o custo de reposicao e maior (mais novos necessarios + CAC x2).
 
-```typescript
-const currentStatic = useMemo(() => {
-  const target = scenarioTargets[scenario];
-  return staticScenarios.find((s) => s.activeCustomers === target) || staticScenarios[1];
-}, [scenario, staticScenarios]);
-```
+3. **Ajustar o KPI de "Clientes Ativos"** para incluir no subtitulo a quantidade de novos necessarios, dando contexto.
 
-Por:
+### Alteracoes
 
-```typescript
-const currentStatic = useMemo(() => {
-  const scenarioIndex = { "100": 0, "200": 1, "500": 2 } as const;
-  return staticScenarios[scenarioIndex[scenario]];
-}, [scenario, staticScenarios]);
-```
+**Arquivo: `src/components/dashboard/InvestorView.tsx`**
 
-Essa abordagem mapeia diretamente o cenario selecionado ao indice correto do array `staticScenarios`, eliminando o problema de comparacao por valor arredondado.
+Na secao "1 tela / 8 numeros", alterar o label:
+- De: `"Novos no mes (estimado)"`
+- Para: `"Novos necessarios (repos. churn)"`
+
+Adicionar nota contextual apos os 8 numeros explicando:
+- "No cenario pessimista, o churn maior exige mais reposicoes, e o CAC dobrado encarece cada aquisicao — por isso o custo de marketing sobe desproporcionalmente."
+
+**Arquivo: `src/components/dashboard/FinancialDashboard.tsx`**
+
+Nenhuma alteracao no calculo — a logica de reposicao esta correta para o DRE estatico. O problema e de comunicacao, nao de calculo.
 
 ## Impacto
 
-- Correcao simples de 1 linha logica
-- Nenhuma mudanca no motor financeiro ou nos demais componentes
-- Funciona corretamente em todos os modos (Moderado, Pessimista, Hormozi)
+- Correcao apenas de labels e textos explicativos
+- Nenhuma mudanca no motor financeiro
+- O investidor entende que "pessimista" = precisa de mais reposicoes + cada uma custa o dobro
+
