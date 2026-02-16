@@ -32,6 +32,8 @@ export default function FinancialDashboard() {
   const pessimisticCAC = mode === "pessimistic";
   const hormoziImpact = mode === "hormozi";
 
+  const monthlyPayroll = useMemo(() => editableCosts.rhItems.reduce((a, i) => a + i.value, 0), [editableCosts]);
+
   const fixedCostOverrideFn = useCallback(
     (activeCustomers: number) => sumFixedCostsFromItems(editableCosts, activeCustomers).totalFixed,
     [editableCosts]
@@ -41,10 +43,10 @@ export default function FinancialDashboard() {
     return [100, 200, 500].map((t) => {
       const newCustomers = Math.round(t * churnRate);
       const override = fixedCostOverrideFn(t);
-      const r = monthModel({ month: 0, activePrev: t, newTarget: newCustomers, churnRate, pessimisticCAC, hormoziImpact, fixedCostOverride: override });
+      const r = monthModel({ month: 0, activePrev: t, newTarget: newCustomers, churnRate, pessimisticCAC, hormoziImpact, fixedCostOverride: override, monthlyPayroll });
       return { name: `${t} clientes`, ...r };
     });
-  }, [churnRate, pessimisticCAC, hormoziImpact, fixedCostOverrideFn]);
+  }, [churnRate, pessimisticCAC, hormoziImpact, fixedCostOverrideFn, monthlyPayroll]);
 
   const currentStatic = useMemo(() => {
     const scenarioIndex = { "100": 0, "200": 1, "500": 2 } as const;
@@ -55,9 +57,9 @@ export default function FinancialDashboard() {
     return build12MonthProjection({
       startActive: 50, targetActive: scenarioTargets[scenario],
       churnRate, pessimisticCAC, hormoziImpact,
-      fixedCostOverrideFn,
+      fixedCostOverrideFn, monthlyPayroll,
     });
-  }, [scenario, churnRate, pessimisticCAC, hormoziImpact, fixedCostOverrideFn]);
+  }, [scenario, churnRate, pessimisticCAC, hormoziImpact, fixedCostOverrideFn, monthlyPayroll]);
 
   const projectionRows = projection.rows;
   const last = projectionRows[projectionRows.length - 1];

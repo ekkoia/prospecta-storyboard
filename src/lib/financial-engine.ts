@@ -120,19 +120,36 @@ export const ASSUMPTIONS = {
     shareOfNewSalesClosedByCloser: 0.4,
     includeOnboardingInCommissionBase: true,
   },
-  taxBrackets: [
-    { cap: 180_000 / 12, rate: 0.06 },
-    { cap: 360_000 / 12, rate: 0.112 },
-    { cap: 720_000 / 12, rate: 0.135 },
-    { cap: 1_800_000 / 12, rate: 0.16 },
-    { cap: 3_600_000 / 12, rate: 0.21 },
-    { cap: Infinity, rate: 0.25 },
-  ],
+  taxSimples: {
+    fatorRThreshold: 0.28,
+    anexoIII: [
+      { capAnual: 180_000, rate: 0.06 },
+      { capAnual: 360_000, rate: 0.112 },
+      { capAnual: 720_000, rate: 0.135 },
+      { capAnual: 1_800_000, rate: 0.16 },
+      { capAnual: 3_600_000, rate: 0.21 },
+      { capAnual: 4_800_000, rate: 0.33 },
+    ],
+    anexoV: [
+      { capAnual: 180_000, rate: 0.155 },
+      { capAnual: 360_000, rate: 0.18 },
+      { capAnual: 720_000, rate: 0.195 },
+      { capAnual: 1_800_000, rate: 0.205 },
+      { capAnual: 3_600_000, rate: 0.23 },
+      { capAnual: 4_800_000, rate: 0.305 },
+    ],
+  },
 } as const;
 
-function calcTaxProgressive(monthlyRevenue: number) {
-  const b = ASSUMPTIONS.taxBrackets.find((x) => monthlyRevenue <= x.cap) || ASSUMPTIONS.taxBrackets[ASSUMPTIONS.taxBrackets.length - 1];
-  return { rate: b.rate, tax: monthlyRevenue * b.rate };
+function calcTaxSimples(monthlyRevenue: number, monthlyPayroll: number) {
+  if (monthlyRevenue <= 0) return { rate: 0, tax: 0, fatorR: 0, anexo: "III" as const };
+  const fatorR = monthlyPayroll / monthlyRevenue;
+  const ts = ASSUMPTIONS.taxSimples;
+  const table = fatorR >= ts.fatorRThreshold ? ts.anexoIII : ts.anexoV;
+  const anexo = fatorR >= ts.fatorRThreshold ? ("III" as const) : ("V" as const);
+  const anual = monthlyRevenue * 12;
+  const bracket = table.find((b) => anual <= b.capAnual) || table[table.length - 1];
+  return { rate: bracket.rate, tax: monthlyRevenue * bracket.rate, fatorR, anexo };
 }
 
 export function sumFixedCosts(activeCustomers: number) {
@@ -223,6 +240,8 @@ export interface MonthResult {
   closerCommission: number;
   taxRate: number;
   taxes: number;
+  fatorR: number;
+  anexo: "III" | "V";
   profit: number;
   margin: number;
   cacBlendedGross: number;
@@ -241,6 +260,7 @@ export function monthModel(params: {
   pessimisticCAC: boolean;
   hormoziImpact: boolean;
   fixedCostOverride?: number;
+  monthlyPayroll?: number;
 }): MonthResult {
   const { month, activePrev, churnRate, pessimisticCAC, fixedCostOverride } = params;
   const hormozi = params.hormoziImpact;
@@ -265,7 +285,8 @@ export function monthModel(params: {
     
   const acq = acquisitionSpend(newCounts, pessimisticCAC);
   const commission = closerCommission(newCounts, onbR);
-  const taxes = calcTaxProgressive(revenueTotal);
+  const payroll = params.monthlyPayroll ?? DEFAULT_FIXED_COSTS.rhItems.reduce((a, i) => a + i.value, 0);
+  const taxes = calcTaxSimples(revenueTotal, payroll);
   const profit = revenueTotal - cogsTotal - fixedTotal - acq.marketingNet - commission - taxes.tax;
 
   return {
@@ -288,6 +309,8 @@ export function monthModel(params: {
     closerCommission: commission,
     taxRate: taxes.rate,
     taxes: taxes.tax,
+    fatorR: taxes.fatorR,
+    anexo: taxes.anexo,
     profit,
     margin: revenueTotal > 0 ? profit / revenueTotal : 0,
     cacBlendedGross: acq.cacBlendedGross,
@@ -310,6 +333,7 @@ export function build12MonthProjection(opts: {
   pessimisticCAC: boolean;
   hormoziImpact: boolean;
   fixedCostOverrideFn?: (activeCustomers: number) => number;
+  monthlyPayroll?: number;
 }) {
   const months = 12;
 
@@ -338,7 +362,7 @@ export function build12MonthProjection(opts: {
     const r = monthModel({
       month: m, activePrev, newTarget: newSchedule[m - 1],
       churnRate: opts.churnRate, pessimisticCAC: opts.pessimisticCAC, hormoziImpact: opts.hormoziImpact,
-      fixedCostOverride,
+      fixedCostOverride, monthlyPayroll: opts.monthlyPayroll,
     });
     rows.push(r);
     activePrev = r.activeCustomers;
