@@ -7,6 +7,8 @@ import { UnitCostView } from "./UnitCostView";
 import { DreView } from "./DreView";
 import { FixedCostsView } from "./FixedCostsView";
 import { InvestmentView } from "./InvestmentView";
+import { Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 
 const TABS = [
   { key: "investor", label: "Investor View" },
@@ -29,6 +31,7 @@ export default function FinancialDashboard() {
   const [scenario, setScenario] = useState<ScenarioKey>("200");
   const [mode, setMode] = useState<ModeKey>("moderate");
   const [editableCosts, setEditableCosts] = useState<EditableCostsState>(() => structuredClone(DEFAULT_FIXED_COSTS));
+  const { theme, setTheme } = useTheme();
 
   const churnRate = mode === "pessimistic" ? ASSUMPTIONS.churnMonthlyPessimistic : ASSUMPTIONS.churnMonthlyBase;
   const pessimisticCAC = mode === "pessimistic";
@@ -69,21 +72,29 @@ export default function FinancialDashboard() {
 
   const btnClass = (active: boolean) =>
     `px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-      active ? "bg-blue-600 text-white" : "bg-transparent border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-white"
+      active ? "bg-primary text-primary-foreground" : "bg-transparent border border-input text-muted-foreground hover:border-foreground/30 hover:text-foreground"
     }`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-semibold text-white tracking-tight mb-1">Prospecta IA 360</h1>
-          <p className="text-slate-500 text-sm">Dashboard Financeiro</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-foreground tracking-tight mb-1">Prospecta IA 360</h1>
+            <p className="text-muted-foreground text-sm">Dashboard Financeiro</p>
+          </div>
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="p-2 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
         </div>
 
         {/* Controls */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <div className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-2">Modo</div>
+          <div className="bg-card border border-border rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+            <div className="text-muted text-xs font-medium uppercase tracking-wider mb-2">Modo</div>
             <div className="flex flex-wrap gap-2">
               {([
                 { k: "moderate" as ModeKey, t: "Moderado" },
@@ -93,23 +104,23 @@ export default function FinancialDashboard() {
                 <button key={m.k} onClick={() => setMode(m.k)} className={btnClass(mode === m.k)}>{m.t}</button>
               ))}
             </div>
-            <div className="mt-3 text-xs text-slate-500 leading-relaxed">
-              <span className="text-slate-400 font-medium">Nota:</span> "Marketing líquido do mês" = Marketing bruto − receita do teste pago.
+            <div className="mt-3 text-xs text-muted-foreground leading-relaxed">
+              <span className="text-foreground/70 font-medium">Nota:</span> "Marketing líquido do mês" = Marketing bruto − receita do teste pago.
             </div>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <div className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-2">Cenário (DRE estático)</div>
+          <div className="bg-card border border-border rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+            <div className="text-muted text-xs font-medium uppercase tracking-wider mb-2">Cenário (DRE estático)</div>
             <div className="flex gap-2">
               {(["100", "200", "500"] as ScenarioKey[]).map((s) => (
                 <button key={s} onClick={() => setScenario(s)} className={`flex-1 ${btnClass(scenario === s)}`}>{s}</button>
               ))}
             </div>
-            <div className="mt-3 text-xs text-slate-500">Snapshot assume novos clientes ≈ churn do mês (reposições).</div>
+            <div className="mt-3 text-xs text-muted-foreground">Snapshot assume novos clientes ≈ churn do mês (reposições).</div>
           </div>
 
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-            <div className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-2">Abas</div>
+          <div className="bg-card border border-border rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+            <div className="text-muted text-xs font-medium uppercase tracking-wider mb-2">Abas</div>
             <div className="flex flex-wrap gap-2">
               {TABS.map((t) => (
                 <button key={t.key} onClick={() => setTab(t.key)} className={btnClass(tab === t.key)}>{t.label}</button>
@@ -133,7 +144,7 @@ export default function FinancialDashboard() {
         )}
         {tab === "investment" && <InvestmentView projectionRows={projectionRows} editableCosts={editableCosts} />}
 
-        <div className="mt-8 text-xs text-slate-600">
+        <div className="mt-8 text-xs text-muted-foreground/60">
           Ajustes recomendados: substituir COGS por plano por custos reais, calibrar CAC por plano com dados por canal, e validar impostos efetivos com contador.
         </div>
       </div>

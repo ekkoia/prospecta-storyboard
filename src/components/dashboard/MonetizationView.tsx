@@ -15,8 +15,8 @@ function PercentTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   const total = payload.reduce((s: number, p: any) => s + (p.value || 0), 0);
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm">
-      <div className="text-slate-300 font-medium mb-1">Mês {label}</div>
+    <div className="bg-popover border border-border rounded-lg p-3 text-sm">
+      <div className="text-foreground font-medium mb-1">Mês {label}</div>
       {payload.map((p: any) => {
         const share = total > 0 ? (p.value / total) * 100 : 0;
         return (
@@ -26,7 +26,7 @@ function PercentTooltip({ active, payload, label }: any) {
           </div>
         );
       })}
-      <div className="border-t border-slate-700 mt-1 pt-1 text-white font-medium flex justify-between">
+      <div className="border-t border-border mt-1 pt-1 text-foreground font-medium flex justify-between">
         <span>Total</span><span>{brl(total)}</span>
       </div>
     </div>
@@ -48,10 +48,10 @@ export function MonetizationView({ projectionRows, last, mode }: Props) {
   return (
     <>
       {!isHormozi && noMoneyModels && (
-        <Alert className="mb-6 bg-slate-800/50 border-slate-600 text-slate-300">
-          <InfoIcon className="h-4 w-4 text-slate-400" />
-          <AlertTitle className="text-slate-200">Money Models inativos</AlertTitle>
-          <AlertDescription>
+        <Alert className="mb-6 bg-accent border-border text-foreground">
+          <InfoIcon className="h-4 w-4 text-muted-foreground" />
+          <AlertTitle className="text-foreground">Money Models inativos</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
             Você está no modo <strong>{mode === "pessimistic" ? "Pessimista" : "Moderado"}</strong>. Os Money Models (onboarding, upsells, voz) só aparecem no modo <strong>"Impacto Hormozi"</strong>. Troque o modo acima para ver o impacto completo.
           </AlertDescription>
         </Alert>
@@ -69,32 +69,32 @@ export function MonetizationView({ projectionRows, last, mode }: Props) {
         <Section title="Receita total vs Assinaturas + Delta Money Models">
           <ResponsiveContainer width="100%" height={320}>
             <AreaChart data={enrichedData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="month" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
-              <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8 }} formatter={(v: any) => brl(v)} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" stroke="hsl(var(--muted))" />
+              <YAxis stroke="hsl(var(--muted))" />
+              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} formatter={(v: any) => brl(v)} />
               <Legend />
-              <Area type="monotone" dataKey="subscriptionRevenue" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} name="Assinaturas" />
-              <Area type="monotone" dataKey="moneyModelsDelta" stroke="#64748b" fill="#64748b" fillOpacity={0.15} name="Delta Money Models" />
-              <Area type="monotone" dataKey="revenueTotal" stroke="#1e40af" fill="#1e40af" fillOpacity={0.1} name="Receita total" />
+              <Area type="monotone" dataKey="subscriptionRevenue" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.15} name="Assinaturas" />
+              <Area type="monotone" dataKey="moneyModelsDelta" stroke="hsl(var(--muted))" fill="hsl(var(--muted))" fillOpacity={0.15} name="Delta Money Models" />
+              <Area type="monotone" dataKey="revenueTotal" stroke="hsl(var(--crextio-yellow-hover))" fill="hsl(var(--crextio-yellow-hover))" fillOpacity={0.1} name="Receita total" />
             </AreaChart>
           </ResponsiveContainer>
         </Section>
 
         <Section title="Mini-mapa Hormozi (o funil de dinheiro)">
-          <div className="space-y-3 text-slate-400 text-sm">
+          <div className="space-y-3 text-muted-foreground text-sm">
             {[
               { title: "Front-end", desc: `Teste pago (R$${ASSUMPTIONS.paidTest.price}) → reduz CAC líquido`, value: last.paidTestRevenue },
               { title: "Upsell imediato", desc: `Onboarding premium em ${Math.round(ASSUMPTIONS.onboarding.attachRateOfNewCustomers * 100)}% dos novos`, value: last.onboardingRevenue },
               { title: "Continuidade", desc: "Add-ons recorrentes (Whats extra + buscas extra)", value: last.upsellRevenue },
               { title: "Alavanca extra", desc: "Packs de voz: receita adicional com COGS proporcional", value: last.voiceRevenue },
             ].map(({ title, desc, value }) => (
-              <div key={title} className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-4 flex justify-between items-center">
+              <div key={title} className="bg-accent/60 border border-border rounded-lg p-4 flex justify-between items-center">
                 <div>
-                  <div className="text-slate-200 font-semibold">{title}</div>
+                  <div className="text-foreground font-semibold">{title}</div>
                   <div>{desc}</div>
                 </div>
-                <div className="text-white font-semibold text-lg ml-4 whitespace-nowrap">{brl(value)}</div>
+                <div className="text-foreground font-semibold text-lg ml-4 whitespace-nowrap">{brl(value)}</div>
               </div>
             ))}
           </div>
@@ -104,15 +104,15 @@ export function MonetizationView({ projectionRows, last, mode }: Props) {
       <Section title="Receita por componente (mês a mês)">
         <ResponsiveContainer width="100%" height={330}>
           <AreaChart data={projectionRows}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="month" stroke="#64748b" />
-            <YAxis stroke="#64748b" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" stroke="hsl(var(--muted))" />
+            <YAxis stroke="hsl(var(--muted))" />
             <Tooltip content={<PercentTooltip />} />
             <Legend />
-            <Area type="monotone" dataKey="subscriptionRevenue" stackId="1" stroke="#3b82f6" fill="#3b82f6" name="Assinaturas" />
-            <Area type="monotone" dataKey="upsellRevenue" stackId="1" stroke="#94a3b8" fill="#94a3b8" name="Upsells" />
-            <Area type="monotone" dataKey="onboardingRevenue" stackId="1" stroke="#60a5fa" fill="#60a5fa" name="Onboarding" />
-            <Area type="monotone" dataKey="voiceRevenue" stackId="1" stroke="#475569" fill="#475569" name="Voz" />
+            <Area type="monotone" dataKey="subscriptionRevenue" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" name="Assinaturas" />
+            <Area type="monotone" dataKey="upsellRevenue" stackId="1" stroke="hsl(var(--muted))" fill="hsl(var(--muted))" name="Upsells" />
+            <Area type="monotone" dataKey="onboardingRevenue" stackId="1" stroke="hsl(var(--crextio-yellow-hover))" fill="hsl(var(--crextio-yellow-hover))" name="Onboarding" />
+            <Area type="monotone" dataKey="voiceRevenue" stackId="1" stroke="hsl(var(--crextio-gray-medium))" fill="hsl(var(--crextio-gray-medium))" name="Voz" />
           </AreaChart>
         </ResponsiveContainer>
       </Section>

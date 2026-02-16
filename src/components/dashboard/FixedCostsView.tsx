@@ -24,7 +24,7 @@ function EditableCell({ value, onChange, prefix = "", isCurrency = true }: {
     return (
       <input
         ref={inputRef}
-        className="w-24 bg-slate-700 border border-blue-500 rounded px-2 py-1 text-right text-sm text-white font-mono focus:outline-none"
+        className="w-24 bg-input border border-primary rounded px-2 py-1 text-right text-sm text-foreground font-mono focus:outline-none"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
@@ -36,7 +36,7 @@ function EditableCell({ value, onChange, prefix = "", isCurrency = true }: {
   const display = isCurrency ? (prefix ? `${prefix}${value}` : brl(value)) : `${(value * 100).toFixed(0)}%`;
   return (
     <span
-      className="cursor-pointer hover:text-blue-400 transition-colors border-b border-dashed border-slate-600 hover:border-blue-400"
+      className="cursor-pointer hover:text-primary transition-colors border-b border-dashed border-border hover:border-primary"
       onClick={() => { setDraft(String(value)); setEditing(true); }}
     >
       {display}
@@ -61,7 +61,7 @@ function EditableLabel({ value, onChange }: { value: string; onChange: (v: strin
     return (
       <input
         ref={inputRef}
-        className="w-36 bg-slate-700 border border-blue-500 rounded px-2 py-1 text-sm text-white focus:outline-none"
+        className="w-36 bg-input border border-primary rounded px-2 py-1 text-sm text-foreground focus:outline-none"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
@@ -72,7 +72,7 @@ function EditableLabel({ value, onChange }: { value: string; onChange: (v: strin
 
   return (
     <span
-      className="cursor-pointer hover:text-blue-400 transition-colors border-b border-dashed border-transparent hover:border-blue-400"
+      className="cursor-pointer hover:text-primary transition-colors border-b border-dashed border-transparent hover:border-primary"
       onClick={() => { setDraft(value); setEditing(true); }}
     >
       {value}
@@ -98,7 +98,7 @@ function AddItemRow({ onAdd, isUsd = false }: { onAdd: (label: string, value: nu
     return (
       <tr>
         <td colSpan={isUsd ? 3 : 2} className="pt-2">
-          <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+          <button onClick={() => setOpen(true)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
             <Plus size={14} /> Adicionar item
           </button>
         </td>
@@ -112,7 +112,7 @@ function AddItemRow({ onAdd, isUsd = false }: { onAdd: (label: string, value: nu
         <input
           autoFocus
           placeholder="Nome"
-          className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
+          className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setOpen(false); }}
@@ -123,12 +123,12 @@ function AddItemRow({ onAdd, isUsd = false }: { onAdd: (label: string, value: nu
         <div className="flex items-center gap-1 justify-end">
           <input
             placeholder={isUsd ? "USD" : "BRL"}
-            className="w-20 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white text-right font-mono focus:outline-none focus:border-blue-500"
+            className="w-20 bg-input border border-border rounded px-2 py-1 text-sm text-foreground text-right font-mono focus:outline-none focus:border-primary"
             value={val}
             onChange={(e) => setVal(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setOpen(false); }}
           />
-          <button onClick={commit} className="text-blue-400 hover:text-blue-300"><Check size={16} /></button>
+          <button onClick={commit} className="text-primary hover:text-primary/80"><Check size={16} /></button>
         </div>
       </td>
     </tr>
@@ -164,10 +164,10 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: {
   };
 
   const tableClass = "w-full text-sm";
-  const thClass = "text-left text-slate-500 font-medium py-2 border-b border-slate-700 uppercase text-xs tracking-wider";
-  const tdClass = "py-2 border-b border-slate-700/50 text-slate-300";
+  const thClass = "text-left text-muted font-medium py-2 border-b border-border uppercase text-xs tracking-wider";
+  const tdClass = "py-2 border-b border-border/50 text-foreground/80";
   const tdRight = `${tdClass} text-right font-mono`;
-  const totalRow = "font-semibold text-white";
+  const totalRow = "font-semibold text-foreground";
 
   const isModified = JSON.stringify(costs) !== JSON.stringify(DEFAULT_FIXED_COSTS);
 
@@ -177,7 +177,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: {
         <div className="flex justify-end">
           <button
             onClick={onReset}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-transparent border border-slate-600 text-slate-400 hover:border-slate-500 hover:text-white text-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-transparent border border-input text-muted-foreground hover:border-foreground/30 hover:text-foreground text-sm transition-all"
           >
             <RotateCcw size={14} /> Resetar valores originais
           </button>
@@ -203,7 +203,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: {
                   <td className={tdClass}><EditableLabel value={i.label} onChange={(v) => updateRh(i.id, { label: v })} /></td>
                   <td className={tdRight}><EditableCell value={i.value} onChange={(v) => updateRh(i.id, { value: v })} /></td>
                   <td className="py-2 text-center">
-                    <button onClick={() => onUpdate({ ...costs, rhItems: costs.rhItems.filter((x) => x.id !== i.id) })} className="text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                    <button onClick={() => onUpdate({ ...costs, rhItems: costs.rhItems.filter((x) => x.id !== i.id) })} className="text-muted-foreground/40 hover:text-destructive transition-colors"><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -224,7 +224,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: {
                   <td className={tdClass}><EditableLabel value={i.label} onChange={(v) => updateToolBrl(i.id, { label: v })} /></td>
                   <td className={tdRight}><EditableCell value={i.value} onChange={(v) => updateToolBrl(i.id, { value: v })} /></td>
                   <td className="py-2 text-center">
-                    <button onClick={() => onUpdate({ ...costs, toolsBrlItems: costs.toolsBrlItems.filter((x) => x.id !== i.id) })} className="text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                    <button onClick={() => onUpdate({ ...costs, toolsBrlItems: costs.toolsBrlItems.filter((x) => x.id !== i.id) })} className="text-muted-foreground/40 hover:text-destructive transition-colors"><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -246,7 +246,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: {
                   <td className={tdRight}><EditableCell value={i.usd} onChange={(v) => updateToolUsd(i.id, { usd: v })} prefix="$" /></td>
                   <td className={tdRight}>{brl(usdToBrl(i.usd))}</td>
                   <td className="py-2 text-center">
-                    <button onClick={() => onUpdate({ ...costs, toolsUsdItems: costs.toolsUsdItems.filter((x) => x.id !== i.id) })} className="text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                    <button onClick={() => onUpdate({ ...costs, toolsUsdItems: costs.toolsUsdItems.filter((x) => x.id !== i.id) })} className="text-muted-foreground/40 hover:text-destructive transition-colors"><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -264,41 +264,41 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Section title="Parâmetros de Câmbio">
-          <div className="text-slate-400 text-sm space-y-3">
+          <div className="text-muted-foreground text-sm space-y-3">
             <div className="flex justify-between items-center">
               <span>Câmbio USD/BRL:</span>
-              <span className="text-white font-mono">R$ <EditableCell value={costs.usdFx} onChange={(v) => onUpdate({ ...costs, usdFx: v })} prefix="" /></span>
+              <span className="text-foreground font-mono">R$ <EditableCell value={costs.usdFx} onChange={(v) => onUpdate({ ...costs, usdFx: v })} prefix="" /></span>
             </div>
             <div className="flex justify-between items-center">
               <span>IOF + Taxas:</span>
-              <span className="text-white font-mono"><EditableCell value={costs.iofAndFeesRate} onChange={(v) => onUpdate({ ...costs, iofAndFeesRate: v })} isCurrency={false} /></span>
+              <span className="text-foreground font-mono"><EditableCell value={costs.iofAndFeesRate} onChange={(v) => onUpdate({ ...costs, iofAndFeesRate: v })} isCurrency={false} /></span>
             </div>
           </div>
         </Section>
 
         <Section title="Custo Variável — Números Twilio">
-          <div className="text-slate-400 text-sm space-y-3">
+          <div className="text-muted-foreground text-sm space-y-3">
             <div className="flex justify-between items-center">
               <span>Custo por número (USD):</span>
-              <span className="text-white font-mono">$<EditableCell value={costs.twilioNumberUsdPerCustomer} onChange={(v) => onUpdate({ ...costs, twilioNumberUsdPerCustomer: v })} prefix="" /></span>
+              <span className="text-foreground font-mono">$<EditableCell value={costs.twilioNumberUsdPerCustomer} onChange={(v) => onUpdate({ ...costs, twilioNumberUsdPerCustomer: v })} prefix="" /></span>
             </div>
             <div className="flex justify-between items-center">
               <span>Penetração:</span>
-              <span className="text-white font-mono"><EditableCell value={costs.twilioNumberShareOfCustomers} onChange={(v) => onUpdate({ ...costs, twilioNumberShareOfCustomers: v })} isCurrency={false} /></span>
+              <span className="text-foreground font-mono"><EditableCell value={costs.twilioNumberShareOfCustomers} onChange={(v) => onUpdate({ ...costs, twilioNumberShareOfCustomers: v })} isCurrency={false} /></span>
             </div>
             <div className="flex justify-between items-center">
               <span>Clientes ativos:</span>
-              <span className="text-white font-mono">{activeCustomers}</span>
+              <span className="text-foreground font-mono">{activeCustomers}</span>
             </div>
-            <p className="text-white font-semibold pt-2">Custo Twilio total: {brl(twilioCost)}/mês</p>
+            <p className="text-foreground font-semibold pt-2">Custo Twilio total: {brl(twilioCost)}/mês</p>
           </div>
         </Section>
       </div>
 
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 text-center">
-        <span className="text-slate-500 text-sm">Total geral (fixo + Twilio): </span>
-        <span className="text-2xl font-semibold text-white">{brl(totalWithTwilio)}</span>
-        <span className="text-slate-600 text-xs ml-2">/mês</span>
+      <div className="bg-card border border-border rounded-2xl p-4 text-center" style={{ boxShadow: 'var(--shadow-card)' }}>
+        <span className="text-muted text-sm">Total geral (fixo + Twilio): </span>
+        <span className="text-2xl font-semibold text-foreground">{brl(totalWithTwilio)}</span>
+        <span className="text-muted-foreground/60 text-xs ml-2">/mês</span>
       </div>
     </div>
   );
