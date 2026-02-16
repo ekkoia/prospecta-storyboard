@@ -37,7 +37,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
         <KpiCard title="Clientes Ativos" value={`${currentStatic.activeCustomers}`} sub={`Churn: ${pct(churnRate)} · Repos.: ${currentStatic.newCustomers}/mês`} tone="orange" />
         <KpiCard title="Receita Total" value={brl(currentStatic.revenueTotal)} sub="Recorrência + Money Models" tone="green" />
         <KpiCard title="Lucro Líquido" value={brl(currentStatic.profit)} sub={`Margem: ${pct(currentStatic.margin)}`} tone="blue" />
-        <KpiCard title="CAC por Cliente (blended)" value={brl(currentStatic.cacBlendedNet)} sub="CAC líquido = marketing líquido / novos" tone="purple" />
+        <KpiCard title="CAC por Cliente (blended)" value={brl(currentStatic.cacBlendedNet)} sub={`Líq.: ${brl(currentStatic.cacBlendedNet)} · Bruto: ${brl(currentStatic.cacBlendedGross)}`} tone="purple" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -51,6 +51,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
               ["Marketing bruto do mês", brl(currentStatic.marketingGross)],
               ["Marketing líquido do mês", brl(currentStatic.marketingNet)],
               ["CAC por cliente (líquido)", brl(currentStatic.cacBlendedNet)],
+              ["CAC por cliente (bruto)", brl(currentStatic.cacBlendedGross)],
               ["Margem líquida", pct(currentStatic.margin)],
             ].map(([label, val]) => (
               <div key={label} className="flex justify-between bg-slate-700 rounded-lg p-3">
@@ -60,7 +61,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
             ))}
           </div>
           <div className="mt-3 text-xs text-slate-400 leading-relaxed space-y-1">
-            <div><span className="text-slate-200 font-semibold">Tradução:</span> aqui ninguém confunde CAC com gasto mensal. CAC é por cliente. Marketing é gasto do mês.</div>
+            <div><span className="text-slate-200 font-semibold">Tradução:</span> CAC bruto = investimento total em tráfego por cliente. CAC líquido = após abater receita do teste pago. Marketing = gasto do mês.</div>
             <div><span className="text-yellow-400 font-semibold">⚠ Pessimista:</span> churn maior exige mais reposições, e o CAC dobrado encarece cada aquisição — por isso o custo de marketing sobe desproporcionalmente.</div>
           </div>
         </Section>
