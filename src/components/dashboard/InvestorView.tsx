@@ -101,7 +101,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
             {[
               ["1) Fixos diluem", "Os custos fixos (time, tools, infra) ficam quase estáveis. Mais clientes = menor fixo por cliente."],
               ["2) CAC não cresce proporcionalmente", "Marketing é puxado por clientes novos. Receita vem da base inteira (ativos)."],
-              ["3) Money Models aumentam ARPA", "Onboarding + upsells aumentam ticket médio sem exigir o mesmo aumento de CAC."],
+              ["3) Money Models aumentam ARPU", "Onboarding + upsells aumentam ticket médio sem exigir o mesmo aumento de CAC."],
             ].map(([title, desc]) => (
               <div key={title} className="bg-slate-700 rounded-lg p-4">
                 <div className="text-white font-bold mb-1">{title}</div>
