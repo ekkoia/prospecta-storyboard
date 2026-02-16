@@ -61,21 +61,21 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
           <AreaChart data={projectionRows}>
             <defs>
               <linearGradient id="gradActive" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
+                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="month" stroke="#64748b" />
-            <YAxis stroke="#64748b" />
-            <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8 }}
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" stroke="hsl(var(--muted))" />
+            <YAxis stroke="hsl(var(--muted))" />
+            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
               formatter={(value: number) => `${value} clientes`} />
             <Legend />
-            <Area type="monotone" dataKey="activeCustomers" stroke="#3b82f6" strokeWidth={2} fill="url(#gradActive)" name="Clientes ativos" />
-            <Line type="monotone" dataKey="newCustomers" stroke="#94a3b8" strokeWidth={1.5} dot={false} name="Novos/mês" />
+            <Area type="monotone" dataKey="activeCustomers" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#gradActive)" name="Clientes ativos" />
+            <Line type="monotone" dataKey="newCustomers" stroke="hsl(var(--muted))" strokeWidth={1.5} dot={false} name="Novos/mês" />
           </AreaChart>
         </ResponsiveContainer>
-        <div className="mt-2 text-xs text-slate-500">
+        <div className="mt-2 text-xs text-muted-foreground">
           A base de clientes cresce mês a mês com aquisição constante. A linha cinza mostra a reposição + crescimento mensal.
         </div>
       </Section>
@@ -83,18 +83,18 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
       <Section title="Marketing — Mensal vs Acumulado">
         <ResponsiveContainer width="100%" height={260}>
           <ComposedChart data={enrichedRows}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="month" stroke="#64748b" />
-            <YAxis yAxisId="left" stroke="#64748b" tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
-            <YAxis yAxisId="right" orientation="right" stroke="#64748b" tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
-            <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8 }}
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" stroke="hsl(var(--muted))" />
+            <YAxis yAxisId="left" stroke="hsl(var(--muted))" tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
+            <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted))" tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
+            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
               formatter={(value: number) => brl(value)} />
             <Legend />
-            <Bar yAxisId="left" dataKey="marketingNet" fill="#64748b" opacity={0.6} name="Marketing líquido/mês" />
-            <Line yAxisId="right" type="monotone" dataKey="marketingCumulative" stroke="#3b82f6" strokeWidth={2} dot={false} name="Acumulado 12m" />
+            <Bar yAxisId="left" dataKey="marketingNet" fill="hsl(var(--muted))" opacity={0.6} name="Marketing líquido/mês" />
+            <Line yAxisId="right" type="monotone" dataKey="marketingCumulative" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="Acumulado 12m" />
           </ComposedChart>
         </ResponsiveContainer>
-        <div className="mt-2 text-xs text-slate-500">
+        <div className="mt-2 text-xs text-muted-foreground">
           Barras = gasto líquido mensal (após abatimento do teste pago). Linha = investimento total acumulado ao longo dos 12 meses.
         </div>
       </Section>
@@ -102,17 +102,17 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
       <Section title="CAC por Cliente — Bruto vs Líquido">
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={projectionRows}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="month" stroke="#64748b" />
-            <YAxis stroke="#64748b" tickFormatter={(v: number) => brl(v)} />
-            <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8 }}
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" stroke="hsl(var(--muted))" />
+            <YAxis stroke="hsl(var(--muted))" tickFormatter={(v: number) => brl(v)} />
+            <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
               formatter={(value: number) => brl(value)} />
             <Legend />
-            <Bar dataKey="cacBlendedGross" fill="#94a3b8" opacity={0.5} name="CAC bruto" />
-            <Bar dataKey="cacBlendedNet" fill="#3b82f6" name="CAC líquido" />
+            <Bar dataKey="cacBlendedGross" fill="hsl(var(--muted))" opacity={0.5} name="CAC bruto" />
+            <Bar dataKey="cacBlendedNet" fill="hsl(var(--primary))" name="CAC líquido" />
           </BarChart>
         </ResponsiveContainer>
-        <div className="mt-2 text-xs text-slate-500">
+        <div className="mt-2 text-xs text-muted-foreground">
           A diferença entre o CAC bruto e líquido mostra o impacto do teste pago na redução do custo de aquisição.
         </div>
       </Section>
@@ -121,8 +121,8 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-slate-400">Orçamento mensal:</span>
-              <span className="text-2xl font-semibold text-white">{brl(budget)}</span>
+              <span className="text-sm text-muted-foreground">Orçamento mensal:</span>
+              <span className="text-2xl font-semibold text-foreground">{brl(budget)}</span>
             </div>
             <Slider
               value={[budget]}
@@ -132,47 +132,47 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
               step={500}
               className="w-full"
             />
-            <div className="flex justify-between text-xs text-slate-600 mt-1">
+            <div className="flex justify-between text-xs text-muted-foreground/60 mt-1">
               <span>R$ 1.000</span>
               <span>R$ 50.000</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-4 text-center">
-              <div className="text-slate-500 text-xs mb-1">Clientes novos/mês</div>
-              <div className="text-2xl font-semibold text-white">{clientesNovos.toFixed(1)}</div>
-              <div className="text-slate-600 text-xs mt-1">CAC blended: {brl(cacBlendedGross)}</div>
+            <div className="bg-accent/60 border border-border rounded-lg p-4 text-center">
+              <div className="text-muted text-xs mb-1">Clientes novos/mês</div>
+              <div className="text-2xl font-semibold text-foreground">{clientesNovos.toFixed(1)}</div>
+              <div className="text-muted-foreground/60 text-xs mt-1">CAC blended: {brl(cacBlendedGross)}</div>
             </div>
-            <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-4">
-              <div className="text-slate-500 text-xs mb-2">Distribuição por plano</div>
+            <div className="bg-accent/60 border border-border rounded-lg p-4">
+              <div className="text-muted text-xs mb-2">Distribuição por plano</div>
               {clientesPorPlano.map(p => (
-                <div key={p.key} className="flex justify-between text-sm text-slate-400">
+                <div key={p.key} className="flex justify-between text-sm text-muted-foreground">
                   <span>{p.label}</span>
-                  <span className="font-medium text-slate-200">{p.count.toFixed(1)}</span>
+                  <span className="font-medium text-foreground">{p.count.toFixed(1)}</span>
                 </div>
               ))}
             </div>
-            <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-4 text-center">
-              <div className="text-slate-500 text-xs mb-1">Receita mensal estimada</div>
-              <div className="text-2xl font-semibold text-white">{brl(receitaEstimada)}</div>
-              <div className="text-slate-600 text-xs mt-1">dos novos clientes</div>
+            <div className="bg-accent/60 border border-border rounded-lg p-4 text-center">
+              <div className="text-muted text-xs mb-1">Receita mensal estimada</div>
+              <div className="text-2xl font-semibold text-foreground">{brl(receitaEstimada)}</div>
+              <div className="text-muted-foreground/60 text-xs mt-1">dos novos clientes</div>
             </div>
-            <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-4 text-center">
-              <div className="text-slate-500 text-xs mb-1">ROI estimado</div>
-              <div className="text-2xl font-semibold text-blue-400">{roi.toFixed(1)}x</div>
-              <div className="text-slate-600 text-xs mt-1">receita / investimento</div>
+            <div className="bg-accent/60 border border-border rounded-lg p-4 text-center">
+              <div className="text-muted text-xs mb-1">ROI estimado</div>
+              <div className="text-2xl font-semibold text-primary">{roi.toFixed(1)}x</div>
+              <div className="text-muted-foreground/60 text-xs mt-1">receita / investimento</div>
             </div>
           </div>
 
-          <div className="text-xs text-slate-600">
+          <div className="text-xs text-muted-foreground/60">
             * Simulação baseada no CAC blended bruto ({brl(cacBlendedGross)}/cliente) e no mix atual de planos. Não considera churn, sazonalidade ou variações de conversão.
           </div>
         </div>
       </Section>
 
-      <div className="mt-4 bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 text-xs text-slate-500 leading-relaxed">
-        <span className="text-slate-400 font-medium">Sobre o modelo:</span> A projeção usa uma <span className="text-slate-300 font-medium">rampa progressiva de aquisição</span> — o mês 1 começa com ~50% da média e o mês 12 atinge ~150%, simulando o aquecimento natural do marketing. O solver encontra a média ideal para atingir a meta de clientes ao final de 12 meses.
+      <div className="mt-4 bg-card border border-border rounded-lg p-4 text-xs text-muted-foreground leading-relaxed">
+        <span className="text-foreground/70 font-medium">Sobre o modelo:</span> A projeção usa uma <span className="text-foreground font-medium">rampa progressiva de aquisição</span> — o mês 1 começa com ~50% da média e o mês 12 atinge ~150%, simulando o aquecimento natural do marketing. O solver encontra a média ideal para atingir a meta de clientes ao final de 12 meses.
       </div>
     </>
   );

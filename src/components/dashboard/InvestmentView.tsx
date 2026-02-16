@@ -128,15 +128,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   const cumulativeEntry = payload.find((p: any) => p.dataKey === "cumulative");
   const flowValue = cumulativeEntry?.payload?.flow;
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm">
-      <p className="text-slate-300 font-medium mb-1">{label}</p>
+    <div className="bg-popover border border-border rounded-lg p-3 text-sm">
+      <p className="text-foreground font-medium mb-1">{label}</p>
       {payload.map((p: any) => (
         <p key={p.dataKey} style={{ color: p.color }}>
           {p.name}: {formatBrl(p.value)}
         </p>
       ))}
       {flowValue !== undefined && (
-        <p className={flowValue >= 0 ? "text-blue-400" : "text-slate-400"}>
+        <p className={flowValue >= 0 ? "text-primary" : "text-muted-foreground"}>
           Fluxo do mês: {formatBrl(flowValue)}
         </p>
       )}
@@ -160,13 +160,13 @@ function BurnRatePanel({ costs, marketingMonth1 }: { costs: EditableCostsState; 
         <div className="flex items-center justify-between mb-3">
           <div>
             <div className="flex items-center gap-2">
-              <Flame className="h-5 w-5 text-slate-400" />
-              <span className="text-3xl font-semibold text-white">~{formatBrl(burnTotal)}<span className="text-base text-slate-500 font-normal">/mês</span></span>
+              <Flame className="h-5 w-5 text-muted-foreground" />
+              <span className="text-3xl font-semibold text-foreground">~{formatBrl(burnTotal)}<span className="text-base text-muted-foreground font-normal">/mês</span></span>
             </div>
-            <div className="text-slate-500 text-sm mt-1">Custos fixos {formatBrl(fixedTotal)} + Tráfego {formatBrl(marketingMonth1)}</div>
+            <div className="text-muted-foreground text-sm mt-1">Custos fixos {formatBrl(fixedTotal)} + Tráfego {formatBrl(marketingMonth1)}</div>
           </div>
           <CollapsibleTrigger asChild>
-            <button className="text-slate-500 hover:text-white transition-colors flex items-center gap-1 text-sm">
+            <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 text-sm">
               {open ? "Recolher" : "Ver detalhes"}
               <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
             </button>
@@ -175,63 +175,63 @@ function BurnRatePanel({ costs, marketingMonth1 }: { costs: EditableCostsState; 
 
         <CollapsibleContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
-              <div className="text-slate-500 text-xs font-medium mb-2 uppercase tracking-wider">Equipe (RH)</div>
-              <div className="text-lg font-semibold text-white mb-2">{formatBrl(rhTotal)}<span className="text-xs text-slate-500">/mês</span></div>
+            <div className="bg-accent/60 rounded-xl p-4 border border-border">
+              <div className="text-muted text-xs font-medium mb-2 uppercase tracking-wider">Equipe (RH)</div>
+              <div className="text-lg font-semibold text-foreground mb-2">{formatBrl(rhTotal)}<span className="text-xs text-muted-foreground">/mês</span></div>
               <div className="space-y-1">
                 {costs.rhItems.map(item => (
                   <div key={item.id} className="flex justify-between text-xs">
-                    <span className="text-slate-500">{item.label}</span>
-                    <span className="text-slate-400">{formatBrl(item.value)}</span>
+                    <span className="text-muted-foreground">{item.label}</span>
+                    <span className="text-muted-foreground">{formatBrl(item.value)}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
-              <div className="text-slate-500 text-xs font-medium mb-2 uppercase tracking-wider">Ferramentas (BRL)</div>
-              <div className="text-lg font-semibold text-white mb-2">{formatBrl(toolsBrlTotal)}<span className="text-xs text-slate-500">/mês</span></div>
+            <div className="bg-accent/60 rounded-xl p-4 border border-border">
+              <div className="text-muted text-xs font-medium mb-2 uppercase tracking-wider">Ferramentas (BRL)</div>
+              <div className="text-lg font-semibold text-foreground mb-2">{formatBrl(toolsBrlTotal)}<span className="text-xs text-muted-foreground">/mês</span></div>
               <div className="space-y-1">
                 {costs.toolsBrlItems.map(item => (
                   <div key={item.id} className="flex justify-between text-xs">
-                    <span className="text-slate-500">{item.label}</span>
-                    <span className="text-slate-400">{formatBrl(item.value)}</span>
+                    <span className="text-muted-foreground">{item.label}</span>
+                    <span className="text-muted-foreground">{formatBrl(item.value)}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
-              <div className="text-slate-500 text-xs font-medium mb-2 uppercase tracking-wider">Ferramentas (USD)</div>
-              <div className="text-lg font-semibold text-white mb-2">~{formatBrl(toolsUsdTotalBrl)}<span className="text-xs text-slate-500">/mês</span></div>
+            <div className="bg-accent/60 rounded-xl p-4 border border-border">
+              <div className="text-muted text-xs font-medium mb-2 uppercase tracking-wider">Ferramentas (USD)</div>
+              <div className="text-lg font-semibold text-foreground mb-2">~{formatBrl(toolsUsdTotalBrl)}<span className="text-xs text-muted-foreground">/mês</span></div>
               <div className="space-y-1">
                 {costs.toolsUsdItems.map(item => (
                   <div key={item.id} className="flex justify-between text-xs">
-                    <span className="text-slate-500">{item.label} (${item.usd})</span>
-                    <span className="text-slate-400">~{formatBrl(usdToBrl(item.usd))}</span>
+                    <span className="text-muted-foreground">{item.label} (${item.usd})</span>
+                    <span className="text-muted-foreground">~{formatBrl(usdToBrl(item.usd))}</span>
                   </div>
                 ))}
-                <div className="text-slate-600 text-xs mt-1">Câmbio: R$ {costs.usdFx} + IOF {(costs.iofAndFeesRate * 100).toFixed(0)}%</div>
+                <div className="text-muted-foreground/60 text-xs mt-1">Câmbio: R$ {costs.usdFx} + IOF {(costs.iofAndFeesRate * 100).toFixed(0)}%</div>
               </div>
             </div>
 
-            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
-              <div className="text-slate-500 text-xs font-medium mb-2 uppercase tracking-wider">Tráfego Pago</div>
-              <div className="text-lg font-semibold text-white mb-2">{formatBrl(marketingMonth1)}<span className="text-xs text-slate-500">/mês</span></div>
-              <div className="text-slate-600 text-xs">Investimento bruto em mídia do mês 1. Varia conforme o ritmo de aquisição do cenário.</div>
+            <div className="bg-accent/60 rounded-xl p-4 border border-border">
+              <div className="text-muted text-xs font-medium mb-2 uppercase tracking-wider">Tráfego Pago</div>
+              <div className="text-lg font-semibold text-foreground mb-2">{formatBrl(marketingMonth1)}<span className="text-xs text-muted-foreground">/mês</span></div>
+              <div className="text-muted-foreground/60 text-xs">Investimento bruto em mídia do mês 1. Varia conforme o ritmo de aquisição do cenário.</div>
             </div>
           </div>
         </CollapsibleContent>
       </Collapsible>
 
-      <p className="text-slate-600 text-sm mt-4 italic border-l-2 border-slate-700 pl-3">
+      <p className="text-muted-foreground/60 text-sm mt-4 italic border-l-2 border-border pl-3">
         Esse é o custo para manter a operação rodando. Nos primeiros meses, a receita não cobre esse custo — por isso o aporte cobre o gap até a receita escalar.
       </p>
     </Section>
   );
 }
 
-const phaseBorders = ["border-l-amber-500", "border-l-blue-500", "border-l-emerald-500"];
+const phaseBorders = ["border-l-amber-500", "border-l-primary", "border-l-emerald-500"];
 
 export function InvestmentView({ projectionRows, editableCosts }: { projectionRows: MonthResult[]; editableCosts: EditableCostsState }) {
   const { phases, cumulativeData, totalInvestmentNeeded, breakEvenMonth, marginMonth12, paybackMonth } =
@@ -258,26 +258,26 @@ export function InvestmentView({ projectionRows, editableCosts }: { projectionRo
   return (
     <div className="space-y-6">
       <Section title="Track Record — Produto Validado">
-        <p className="text-slate-500 text-sm mb-4">
-          Período: <span className="text-slate-300 font-medium">{TRACK_RECORD.period}</span> — O produto já rodou, faturou e está a R$ 2k do breakeven.
+        <p className="text-muted-foreground text-sm mb-4">
+          Período: <span className="text-foreground font-medium">{TRACK_RECORD.period}</span> — O produto já rodou, faturou e está a R$ 2k do breakeven.
         </p>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
-            <div className="text-slate-500 text-xs font-medium mb-1">Investido até aqui</div>
-            <div className="text-2xl font-semibold text-slate-200">{formatBrl(TRACK_RECORD.totalInvested)}</div>
+          <div className="bg-accent/60 rounded-xl p-4 border border-border">
+            <div className="text-muted text-xs font-medium mb-1">Investido até aqui</div>
+            <div className="text-2xl font-semibold text-foreground">{formatBrl(TRACK_RECORD.totalInvested)}</div>
           </div>
-          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
-            <div className="text-slate-500 text-xs font-medium mb-1">Receita bruta gerada</div>
-            <div className="text-2xl font-semibold text-slate-200">{formatBrl(TRACK_RECORD.grossRevenue)}</div>
+          <div className="bg-accent/60 rounded-xl p-4 border border-border">
+            <div className="text-muted text-xs font-medium mb-1">Receita bruta gerada</div>
+            <div className="text-2xl font-semibold text-foreground">{formatBrl(TRACK_RECORD.grossRevenue)}</div>
           </div>
-          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
-            <div className="text-slate-500 text-xs font-medium mb-1">Gap atual</div>
-            <div className="text-2xl font-semibold text-slate-400">{formatBrl(TRACK_RECORD.currentResult)}</div>
-            <div className="text-slate-600 text-xs mt-1">Quase breakeven</div>
+          <div className="bg-accent/60 rounded-xl p-4 border border-border">
+            <div className="text-muted text-xs font-medium mb-1">Gap atual</div>
+            <div className="text-2xl font-semibold text-muted-foreground">{formatBrl(TRACK_RECORD.currentResult)}</div>
+            <div className="text-muted-foreground/60 text-xs mt-1">Quase breakeven</div>
           </div>
-          <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/40">
-            <div className="text-slate-500 text-xs font-medium mb-1">MRR validado (V2)</div>
-            <div className="text-2xl font-semibold text-blue-400">{formatBrl(TRACK_RECORD.validatedMRR)}<span className="text-sm text-slate-500">/mês</span></div>
+          <div className="bg-accent/60 rounded-xl p-4 border border-border">
+            <div className="text-muted text-xs font-medium mb-1">MRR validado (V2)</div>
+            <div className="text-2xl font-semibold text-primary">{formatBrl(TRACK_RECORD.validatedMRR)}<span className="text-sm text-muted-foreground">/mês</span></div>
           </div>
         </div>
       </Section>
@@ -292,56 +292,56 @@ export function InvestmentView({ projectionRows, editableCosts }: { projectionRo
       <BurnRatePanel costs={editableCosts} marketingMonth1={marketingMonth1} />
 
       <Section title="Aporte Faseado — Liberação por KPIs">
-        <p className="text-slate-500 text-sm mb-4">
+        <p className="text-muted-foreground text-sm mb-4">
           O aporte de cada fase cobre o déficit operacional dos meses em que a receita ainda não paga todos os custos (RH, ferramentas, tráfego pago, COGS e impostos). O investidor só libera a próxima fase quando os KPIs forem atingidos.
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {phases.map((phase, i) => (
-            <div key={phase.name} className={`bg-slate-800 border border-slate-700/50 border-l-4 ${phaseBorders[i]} rounded-xl p-5`}>
+            <div key={phase.name} className={`bg-card border border-border border-l-4 ${phaseBorders[i]} rounded-xl p-5`}>
               <div className="mb-3">
-                <div className="text-white font-semibold text-lg">{phase.name}</div>
-                <div className="text-slate-500 text-xs">{phase.label} — Meses {phase.months[0] + 1}–{phase.months[phase.months.length - 1] + 1}</div>
+                <div className="text-foreground font-semibold text-lg">{phase.name}</div>
+                <div className="text-muted-foreground text-xs">{phase.label} — Meses {phase.months[0] + 1}–{phase.months[phase.months.length - 1] + 1}</div>
               </div>
 
-              <div className="bg-slate-700/30 rounded-lg p-3 mb-3">
-                <div className="text-slate-500 text-xs mb-1">Aporte da fase</div>
-                <div className="text-2xl font-semibold text-white">
+              <div className="bg-accent/30 rounded-lg p-3 mb-3">
+                <div className="text-muted text-xs mb-1">Aporte da fase</div>
+                <div className="text-2xl font-semibold text-foreground">
                   {phase.investmentNeeded > 0 ? formatBrl(phase.investmentNeeded) : "R$ 0"}
                 </div>
                 {phase.investmentNeeded === 0 && (
-                  <div className="flex items-center gap-1 text-blue-400 text-xs mt-1">
+                  <div className="flex items-center gap-1 text-primary text-xs mt-1">
                     <CheckCircle className="h-3.5 w-3.5" /> Auto-sustentável
                   </div>
                 )}
               </div>
 
               <div className="space-y-2 text-sm">
-                <div className="text-slate-500 font-medium text-xs uppercase tracking-wider">KPIs de liberação</div>
-                <div className="flex justify-between text-slate-300">
+                <div className="text-muted font-medium text-xs uppercase tracking-wider">KPIs de liberação</div>
+                <div className="flex justify-between text-foreground/80">
                   <span>Clientes ativos</span>
-                  <span className="font-semibold text-white">{phase.kpis.clients}</span>
+                  <span className="font-semibold text-foreground">{phase.kpis.clients}</span>
                 </div>
-                <div className="flex justify-between text-slate-300">
+                <div className="flex justify-between text-foreground/80">
                   <span>Receita mensal</span>
-                  <span className="font-semibold text-white">{formatBrl(phase.kpis.revenue)}</span>
+                  <span className="font-semibold text-foreground">{formatBrl(phase.kpis.revenue)}</span>
                 </div>
-                <div className="flex justify-between text-slate-300">
+                <div className="flex justify-between text-foreground/80">
                   <span>Churn máx.</span>
-                  <span className="font-semibold text-white">{pct(phase.kpis.churn)}</span>
+                  <span className="font-semibold text-foreground">{pct(phase.kpis.churn)}</span>
                 </div>
               </div>
 
               {phase.monthDetails.some(m => m.gap < 0) && (
-                <div className="mt-3 pt-3 border-t border-slate-700/50">
-                  <div className="text-slate-500 font-medium text-xs uppercase tracking-wider mb-2">Composição mensal</div>
+                <div className="mt-3 pt-3 border-t border-border/50">
+                  <div className="text-muted font-medium text-xs uppercase tracking-wider mb-2">Composição mensal</div>
                   <div className="space-y-1.5">
                     {phase.monthDetails.map(m => (
                       <div key={m.month} className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">Mês {m.month}</span>
+                        <span className="text-muted-foreground">Mês {m.month}</span>
                         <div className="flex gap-3">
-                          <span className="text-slate-300">{formatBrl(m.revenue)}</span>
-                          <span className="text-slate-500">-{formatBrl(m.totalCosts)}</span>
-                          <span className={`font-semibold ${m.gap >= 0 ? "text-blue-400" : "text-slate-400"}`}>
+                          <span className="text-foreground/80">{formatBrl(m.revenue)}</span>
+                          <span className="text-muted-foreground">-{formatBrl(m.totalCosts)}</span>
+                          <span className={`font-semibold ${m.gap >= 0 ? "text-primary" : "text-muted-foreground"}`}>
                             {formatBrl(m.gap)}
                           </span>
                         </div>
@@ -349,9 +349,9 @@ export function InvestmentView({ projectionRows, editableCosts }: { projectionRo
                     ))}
                   </div>
                   {i === 0 && (
-                    <div className="flex items-center justify-between text-xs mt-1.5 pt-1.5 border-t border-slate-700/30">
-                      <span className="text-slate-500">Déficit histórico</span>
-                      <span className="font-semibold text-slate-400">{formatBrl(TRACK_RECORD.currentResult)}</span>
+                    <div className="flex items-center justify-between text-xs mt-1.5 pt-1.5 border-t border-border/30">
+                      <span className="text-muted-foreground">Déficit histórico</span>
+                      <span className="font-semibold text-muted-foreground">{formatBrl(TRACK_RECORD.currentResult)}</span>
                     </div>
                   )}
                 </div>
@@ -362,7 +362,7 @@ export function InvestmentView({ projectionRows, editableCosts }: { projectionRo
       </Section>
 
       <Section title="Fluxo de Caixa Acumulado (12 meses)">
-        <p className="text-slate-500 text-sm mb-4">
+        <p className="text-muted-foreground text-sm mb-4">
           Iniciando do resultado histórico de {formatBrl(TRACK_RECORD.currentResult)}. O ponto de breakeven é quando a linha cruza o zero.
         </p>
         <div className="h-80">
@@ -370,20 +370,20 @@ export function InvestmentView({ projectionRows, editableCosts }: { projectionRo
             <AreaChart data={cumulativeData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" stroke="hsl(var(--muted))" fontSize={12} />
+              <YAxis stroke="hsl(var(--muted))" fontSize={12} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<CustomTooltip />} />
-              <ReferenceLine y={0} stroke="#64748b" strokeDasharray="6 3" label={{ value: "Breakeven", fill: "#64748b", fontSize: 12 }} />
+              <ReferenceLine y={0} stroke="hsl(var(--muted))" strokeDasharray="6 3" label={{ value: "Breakeven", fill: "hsl(var(--muted))", fontSize: 12 }} />
               <Area
                 type="monotone"
                 dataKey="cumulative"
                 name="Acumulado"
-                stroke="#3b82f6"
+                stroke="hsl(var(--primary))"
                 fill="url(#colorCumulative)"
                 strokeWidth={2}
               />
@@ -396,7 +396,7 @@ export function InvestmentView({ projectionRows, editableCosts }: { projectionRo
         <ScrollArea className="w-full">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-700 uppercase text-xs tracking-wider text-slate-500">
+              <tr className="border-b border-border uppercase text-xs tracking-wider text-muted">
                 <th className="text-left py-2 px-3 font-medium">Mês</th>
                 <th className="text-right py-2 px-3 font-medium">Clientes</th>
                 <th className="text-right py-2 px-3 font-medium">Receita</th>
@@ -407,15 +407,15 @@ export function InvestmentView({ projectionRows, editableCosts }: { projectionRo
             </thead>
             <tbody>
               {tableRows.map((r, idx) => (
-                <tr key={r.month} className={`border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors ${idx % 2 === 0 ? "bg-slate-800/30" : ""}`}>
-                  <td className="py-2 px-3 text-slate-300 font-medium">Mês {r.month}</td>
-                  <td className="py-2 px-3 text-right text-slate-400">{r.clients}</td>
-                  <td className="py-2 px-3 text-right text-slate-300">{formatBrl(r.revenue)}</td>
-                  <td className="py-2 px-3 text-right text-slate-400">{formatBrl(r.expenses)}</td>
-                  <td className={`py-2 px-3 text-right font-medium ${r.flow >= 0 ? "text-blue-400" : "text-slate-400"}`}>
+                <tr key={r.month} className={`border-b border-border/50 hover:bg-accent/30 transition-colors ${idx % 2 === 0 ? "bg-accent/20" : ""}`}>
+                  <td className="py-2 px-3 text-foreground/80 font-medium">Mês {r.month}</td>
+                  <td className="py-2 px-3 text-right text-muted-foreground">{r.clients}</td>
+                  <td className="py-2 px-3 text-right text-foreground/80">{formatBrl(r.revenue)}</td>
+                  <td className="py-2 px-3 text-right text-muted-foreground">{formatBrl(r.expenses)}</td>
+                  <td className={`py-2 px-3 text-right font-medium ${r.flow >= 0 ? "text-primary" : "text-muted-foreground"}`}>
                     {formatBrl(r.flow)}
                   </td>
-                  <td className={`py-2 px-3 text-right font-medium ${r.cumulative >= 0 ? "text-blue-400" : "text-slate-400"}`}>
+                  <td className={`py-2 px-3 text-right font-medium ${r.cumulative >= 0 ? "text-primary" : "text-muted-foreground"}`}>
                     {formatBrl(r.cumulative)}
                   </td>
                 </tr>

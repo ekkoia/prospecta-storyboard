@@ -14,7 +14,7 @@ interface Props {
 export function InvestorView({ currentStatic, churnRate, staticScenarios }: Props) {
   const distribution = useMemo(() => {
     const activeCounts = planCounts(currentStatic.activeCustomers);
-    const colors: Record<PlanKey, string> = { lite: "#60a5fa", starter: "#94a3b8", pro: "#3b82f6", enterprise: "#1e40af" };
+    const colors: Record<PlanKey, string> = { lite: "#94a3b8", starter: "#64748b", pro: "hsl(45, 95%, 63%)", enterprise: "hsl(45, 89%, 57%)" };
     return (Object.keys(activeCounts) as PlanKey[]).map((k) => ({
       name: `${ASSUMPTIONS.plans[k].label} (R$${ASSUMPTIONS.plans[k].price})`,
       value: activeCounts[k],
@@ -56,17 +56,17 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
               ["CAC por cliente (bruto)", brl(currentStatic.cacBlendedGross)],
               ["Margem líquida", pct(currentStatic.margin)],
             ].map(([label, val]) => (
-              <div key={label} className="flex justify-between bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
-                <span className="text-slate-400">{label}</span>
-                <span className="text-white font-semibold">{val}</span>
+              <div key={label} className="flex justify-between bg-accent/60 border border-border rounded-lg p-3">
+                <span className="text-muted-foreground">{label}</span>
+                <span className="text-foreground font-semibold">{val}</span>
               </div>
             ))}
           </div>
-          <div className="mt-3 text-xs text-slate-500 leading-relaxed space-y-1">
-            <div><span className="text-slate-300 font-medium">Tradução:</span> CAC bruto = investimento total em tráfego por cliente. CAC líquido = após abater receita do teste pago. Marketing = gasto do mês.</div>
+          <div className="mt-3 text-xs text-muted-foreground/70 leading-relaxed space-y-1">
+            <div><span className="text-foreground/70 font-medium">Tradução:</span> CAC bruto = investimento total em tráfego por cliente. CAC líquido = após abater receita do teste pago. Marketing = gasto do mês.</div>
             <div className="flex items-start gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
-              <span><span className="text-slate-300 font-medium">Pessimista:</span> churn maior exige mais reposições, e o CAC dobrado encarece cada aquisição — por isso o custo de marketing sobe desproporcionalmente.</span>
+              <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+              <span><span className="text-foreground/70 font-medium">Pessimista:</span> churn maior exige mais reposições, e o CAC dobrado encarece cada aquisição — por isso o custo de marketing sobe desproporcionalmente.</span>
             </div>
           </div>
         </Section>
@@ -79,7 +79,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
                 outerRadius={110} dataKey="value">
                 {distribution.map((entry, idx) => (<Cell key={idx} fill={entry.color} />))}
               </Pie>
-              <Tooltip formatter={(v: any) => `${v} clientes`} contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8 }} />
+              <Tooltip formatter={(v: any) => `${v} clientes`} contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
             </PieChart>
           </ResponsiveContainer>
         </Section>
@@ -89,27 +89,27 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
         <Section title="Comparação (100 vs 200 vs 500)">
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={comparisonData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="name" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
-              <Tooltip contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8 }}
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="name" stroke="hsl(var(--muted))" />
+              <YAxis stroke="hsl(var(--muted))" />
+              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
                 formatter={(value: any, key: any) => (key === "Margem %" ? `${value}%` : brl(value))} />
               <Legend />
-              <Bar dataKey="Receita Total" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="Lucro Líquido" fill="#1e40af" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Receita Total" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Lucro Líquido" fill="hsl(var(--crextio-yellow-hover))" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Section>
 
         <Section title="Por que a margem sobe com escala">
-          <div className="space-y-3 text-slate-400 text-sm leading-relaxed">
+          <div className="space-y-3 text-muted-foreground text-sm leading-relaxed">
             {[
               ["1) Fixos diluem", "Os custos fixos (time, tools, infra) ficam quase estáveis. Mais clientes = menor fixo por cliente."],
               ["2) CAC não cresce proporcionalmente", "Marketing é puxado por clientes novos. Receita vem da base inteira (ativos)."],
               ["3) Money Models aumentam ARPU", "Onboarding + upsells aumentam ticket médio sem exigir o mesmo aumento de CAC."],
             ].map(([title, desc]) => (
-              <div key={title} className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-4">
-                <div className="text-slate-200 font-semibold mb-1">{title}</div>
+              <div key={title} className="bg-accent/60 border border-border rounded-lg p-4">
+                <div className="text-foreground font-semibold mb-1">{title}</div>
                 <div>{desc}</div>
               </div>
             ))}
