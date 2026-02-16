@@ -2,14 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { brl, type CostItem, type UsdCostItem, type EditableCostsState, DEFAULT_FIXED_COSTS } from "@/lib/financial-engine";
 import { Section } from "./Section";
 import { KpiCard } from "./KpiCard";
-import { Plus, Trash2, RotateCcw, Check } from "lucide-react";
-
-interface FixedCostsViewProps {
-  costs: EditableCostsState;
-  activeCustomers: number;
-  onUpdate: (costs: EditableCostsState) => void;
-  onReset: () => void;
-}
+import { Plus, Trash2, RotateCcw, Check, Users, Wrench, Globe, ArrowLeftRight, Phone } from "lucide-react";
 
 /* ---- Editable Cell ---- */
 function EditableCell({ value, onChange, prefix = "", isCurrency = true }: {
@@ -135,7 +128,7 @@ function AddItemRow({ onAdd, isUsd = false }: { onAdd: (label: string, value: nu
             onChange={(e) => setVal(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setOpen(false); }}
           />
-          <button onClick={commit} className="text-green-400 hover:text-green-300"><Check size={16} /></button>
+          <button onClick={commit} className="text-blue-400 hover:text-blue-300"><Check size={16} /></button>
         </div>
       </td>
     </tr>
@@ -143,7 +136,12 @@ function AddItemRow({ onAdd, isUsd = false }: { onAdd: (label: string, value: nu
 }
 
 /* ---- Main Component ---- */
-export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: FixedCostsViewProps) {
+export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: {
+  costs: EditableCostsState;
+  activeCustomers: number;
+  onUpdate: (costs: EditableCostsState) => void;
+  onReset: () => void;
+}) {
   const usdToBrl = (usd: number) => usd * costs.usdFx * (1 + costs.iofAndFeesRate);
 
   const rhTotal = costs.rhItems.reduce((a, i) => a + i.value, 0);
@@ -166,38 +164,35 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
   };
 
   const tableClass = "w-full text-sm";
-  const thClass = "text-left text-slate-400 font-medium py-2 border-b border-slate-700";
-  const tdClass = "py-2 border-b border-slate-700/50 text-slate-200";
+  const thClass = "text-left text-slate-500 font-medium py-2 border-b border-slate-700 uppercase text-xs tracking-wider";
+  const tdClass = "py-2 border-b border-slate-700/50 text-slate-300";
   const tdRight = `${tdClass} text-right font-mono`;
-  const totalRow = "font-bold text-white";
+  const totalRow = "font-semibold text-white";
 
   const isModified = JSON.stringify(costs) !== JSON.stringify(DEFAULT_FIXED_COSTS);
 
   return (
     <div className="space-y-6">
-      {/* Reset button */}
       {isModified && (
         <div className="flex justify-end">
           <button
             onClick={onReset}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white text-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-transparent border border-slate-600 text-slate-400 hover:border-slate-500 hover:text-white text-sm transition-all"
           >
             <RotateCcw size={14} /> Resetar valores originais
           </button>
         </div>
       )}
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <KpiCard title="RH (BRL)" value={brl(rhTotal)} tone="blue" />
-        <KpiCard title="Ferramentas (BRL)" value={brl(toolsBrlTotal)} tone="purple" />
-        <KpiCard title="SaaS (USD→BRL)" value={brl(toolsUsdTotalBrl)} sub={`US$ ${toolsUsdTotalUsd}`} tone="orange" />
-        <KpiCard title="Total Fixo + Twilio" value={brl(totalWithTwilio)} sub={`Base ${brl(totalFixedBase)} + Twilio ${brl(twilioCost)}`} tone="green" />
+        <KpiCard title="RH (BRL)" value={brl(rhTotal)} icon={Users} />
+        <KpiCard title="Ferramentas (BRL)" value={brl(toolsBrlTotal)} icon={Wrench} />
+        <KpiCard title="SaaS (USD→BRL)" value={brl(toolsUsdTotalBrl)} sub={`US$ ${toolsUsdTotalUsd}`} icon={Globe} />
+        <KpiCard title="Total Fixo + Twilio" value={brl(totalWithTwilio)} sub={`Base ${brl(totalFixedBase)} + Twilio ${brl(twilioCost)}`} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* RH */}
-        <Section title="👥 Recursos Humanos">
+        <Section title="Recursos Humanos">
           <table className={tableClass}>
             <thead>
               <tr><th className={thClass}>Item</th><th className={`${thClass} text-right`}>Valor</th><th className={`${thClass} w-8`} /></tr>
@@ -208,7 +203,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
                   <td className={tdClass}><EditableLabel value={i.label} onChange={(v) => updateRh(i.id, { label: v })} /></td>
                   <td className={tdRight}><EditableCell value={i.value} onChange={(v) => updateRh(i.id, { value: v })} /></td>
                   <td className="py-2 text-center">
-                    <button onClick={() => onUpdate({ ...costs, rhItems: costs.rhItems.filter((x) => x.id !== i.id) })} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                    <button onClick={() => onUpdate({ ...costs, rhItems: costs.rhItems.filter((x) => x.id !== i.id) })} className="text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -218,8 +213,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
           </table>
         </Section>
 
-        {/* Ferramentas BRL */}
-        <Section title="🛠️ Ferramentas & Infra (BRL)">
+        <Section title="Ferramentas & Infra (BRL)">
           <table className={tableClass}>
             <thead>
               <tr><th className={thClass}>Item</th><th className={`${thClass} text-right`}>Valor</th><th className={`${thClass} w-8`} /></tr>
@@ -230,7 +224,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
                   <td className={tdClass}><EditableLabel value={i.label} onChange={(v) => updateToolBrl(i.id, { label: v })} /></td>
                   <td className={tdRight}><EditableCell value={i.value} onChange={(v) => updateToolBrl(i.id, { value: v })} /></td>
                   <td className="py-2 text-center">
-                    <button onClick={() => onUpdate({ ...costs, toolsBrlItems: costs.toolsBrlItems.filter((x) => x.id !== i.id) })} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                    <button onClick={() => onUpdate({ ...costs, toolsBrlItems: costs.toolsBrlItems.filter((x) => x.id !== i.id) })} className="text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -240,8 +234,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
           </table>
         </Section>
 
-        {/* Ferramentas USD */}
-        <Section title="🌐 SaaS (USD)">
+        <Section title="SaaS (USD)">
           <table className={tableClass}>
             <thead>
               <tr><th className={thClass}>Item</th><th className={`${thClass} text-right`}>USD</th><th className={`${thClass} text-right`}>BRL</th><th className={`${thClass} w-8`} /></tr>
@@ -253,7 +246,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
                   <td className={tdRight}><EditableCell value={i.usd} onChange={(v) => updateToolUsd(i.id, { usd: v })} prefix="$" /></td>
                   <td className={tdRight}>{brl(usdToBrl(i.usd))}</td>
                   <td className="py-2 text-center">
-                    <button onClick={() => onUpdate({ ...costs, toolsUsdItems: costs.toolsUsdItems.filter((x) => x.id !== i.id) })} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                    <button onClick={() => onUpdate({ ...costs, toolsUsdItems: costs.toolsUsdItems.filter((x) => x.id !== i.id) })} className="text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -269,10 +262,9 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
         </Section>
       </div>
 
-      {/* Editable params */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Section title="💱 Parâmetros de Câmbio">
-          <div className="text-slate-300 text-sm space-y-3">
+        <Section title="Parâmetros de Câmbio">
+          <div className="text-slate-400 text-sm space-y-3">
             <div className="flex justify-between items-center">
               <span>Câmbio USD/BRL:</span>
               <span className="text-white font-mono">R$ <EditableCell value={costs.usdFx} onChange={(v) => onUpdate({ ...costs, usdFx: v })} prefix="" /></span>
@@ -284,8 +276,8 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
           </div>
         </Section>
 
-        <Section title="📞 Custo Variável — Números Twilio">
-          <div className="text-slate-300 text-sm space-y-3">
+        <Section title="Custo Variável — Números Twilio">
+          <div className="text-slate-400 text-sm space-y-3">
             <div className="flex justify-between items-center">
               <span>Custo por número (USD):</span>
               <span className="text-white font-mono">$<EditableCell value={costs.twilioNumberUsdPerCustomer} onChange={(v) => onUpdate({ ...costs, twilioNumberUsdPerCustomer: v })} prefix="" /></span>
@@ -298,15 +290,15 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: Fi
               <span>Clientes ativos:</span>
               <span className="text-white font-mono">{activeCustomers}</span>
             </div>
-            <p className="text-white font-bold pt-2">Custo Twilio total: {brl(twilioCost)}/mês</p>
+            <p className="text-white font-semibold pt-2">Custo Twilio total: {brl(twilioCost)}/mês</p>
           </div>
         </Section>
       </div>
 
-      <div className="bg-slate-800 rounded-xl p-4 shadow-xl text-center">
-        <span className="text-slate-400 text-sm">Total geral (fixo + Twilio): </span>
-        <span className="text-2xl font-bold text-white">{brl(totalWithTwilio)}</span>
-        <span className="text-slate-500 text-xs ml-2">/mês</span>
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 text-center">
+        <span className="text-slate-500 text-sm">Total geral (fixo + Twilio): </span>
+        <span className="text-2xl font-semibold text-white">{brl(totalWithTwilio)}</span>
+        <span className="text-slate-600 text-xs ml-2">/mês</span>
       </div>
     </div>
   );

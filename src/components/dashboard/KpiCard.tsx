@@ -1,24 +1,22 @@
+import { type LucideIcon } from "lucide-react";
+
 interface KpiCardProps {
   title: string;
   value: string;
   sub?: string;
-  tone?: "green" | "blue" | "purple" | "orange" | "pink";
+  icon?: LucideIcon;
+  tone?: string; // kept for backward compat but ignored visually
 }
 
-const tones = {
-  green: "from-green-600 to-green-700",
-  blue: "from-blue-600 to-blue-700",
-  purple: "from-purple-600 to-purple-700",
-  orange: "from-orange-600 to-orange-700",
-  pink: "from-pink-600 to-pink-700",
-};
-
-export function KpiCard({ title, value, sub, tone = "blue" }: KpiCardProps) {
+export function KpiCard({ title, value, sub, icon: Icon }: KpiCardProps) {
   return (
-    <div className={`bg-gradient-to-br ${tones[tone]} rounded-xl p-6 shadow-lg`}>
-      <div className="text-white/80 text-sm font-medium mb-1">{title}</div>
-      <div className="text-3xl font-bold text-white">{value}</div>
-      {sub && <div className="text-white/70 text-xs mt-1">{sub}</div>}
+    <div className="bg-slate-800 border border-slate-700/50 rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-1">
+        {Icon && <Icon className="h-4 w-4 text-blue-500" />}
+        <span className="text-xs uppercase tracking-wider text-slate-500 font-medium">{title}</span>
+      </div>
+      <div className="text-2xl font-semibold text-white">{value}</div>
+      {sub && <div className="text-slate-500 text-xs mt-1">{sub}</div>}
     </div>
   );
 }
