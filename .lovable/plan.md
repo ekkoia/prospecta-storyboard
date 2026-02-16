@@ -1,94 +1,88 @@
 
-# Integrar Custos Reais de Voz (VAPI + Twilio) ao Motor Financeiro
 
-## Dados Informados
+# Repricing: Planos Pro/Enterprise e Voice Packs
 
-**Custo real por minuto de chamada: $0.175/min**
-- VAPI Platform: $0.055/min
-- TTS (Text-to-Speech): $0.027/min
-- LLM: $0.027/min
-- STT (Speech-to-Text): $0.009/min
-- Twilio outbound: $0.066/min
-- Twilio Phone Number: $4.25/mes (ja modelado)
+## Diagnostico Atual (com COGS de voz integrados)
 
-**Minutos inclusos nos planos:**
-- Lite: 0 (sem voz)
-- Starter: 0 (sem voz)
-- Pro: 150 min/mes
-- Enterprise: 350 min/mes
+### Planos - Margem Bruta Atual
 
-**Packs de voz (venda avulsa):**
+| Plano | Preco | COGS | Margem Bruta |
+|-------|-------|------|-------------|
+| Lite | R$ 397 | R$ 95 | **76%** |
+| Starter | R$ 897 | R$ 140 | **84%** |
+| Pro | R$ 1.497 | R$ 734 | **51%** |
+| Enterprise | R$ 2.997 | R$ 1.815 | **39%** |
 
-| Pack | Preco | Min inclusos | Custo real (COGS) | Margem |
-|------|-------|-------------|-------------------|--------|
-| R$ 250 | 100 min | ~R$ 99 | 60% |
-| R$ 650 | 300 min | ~R$ 296 | 54% |
-| R$ 1.100 | 600 min | ~R$ 592 | 46% |
-| R$ 1.700 | 1.000 min | ~R$ 986 | 42% |
-| R$ 2.900 | 2.000 min | ~R$ 1.972 | 32% |
+O Enterprise tem margem inferior a 40% — inaceitavel para SaaS B2B. O Pro esta na zona de risco.
 
-(COGS calculado a R$ 5,22 + 8% IOF = R$ 0,986/min)
+### Voice Packs - Margem Atual
 
-## O que muda no modelo
+| Pack | Preco | COGS (R$ 0,986/min) | Margem |
+|------|-------|---------------------|--------|
+| 100 min | R$ 250 | R$ 99 | **60%** |
+| 300 min | R$ 650 | R$ 296 | **54%** |
+| 600 min | R$ 1.100 | R$ 592 | **46%** |
+| 1.000 min | R$ 1.700 | R$ 986 | **42%** |
+| 2.000 min | R$ 2.900 | R$ 1.972 | **32%** |
 
-### 1. Adicionar COGS de voz aos planos Pro e Enterprise
+Os packs maiores subsidiam o cliente — quanto mais compra, pior a margem. O pack de 2.000 min tem apenas 32%.
 
-Os minutos inclusos nos planos geram custo variavel que precisa ser somado ao `cogsByPlan`:
+---
 
-- **Pro**: 150 min x R$ 0,986 = **+R$ 148/mes** por cliente Pro
-  - cogsByPlan.pro: 586 -> **734**
-- **Enterprise**: 350 min x R$ 0,986 = **+R$ 345/mes** por cliente Enterprise
-  - cogsByPlan.enterprise: 1470 -> **1.815**
+## Proposta de Repricing
 
-### 2. Corrigir COGS dos voice packs
+### Planos
 
-O modelo atual usa `cogsRateOfVoiceRevenue: 0.32` (32%), mas os dados reais mostram que a taxa de COGS varia de 32% a 60% dependendo do pack.
+O objetivo e levar todos os planos para margem bruta minima de 60%.
 
-Usando uma media ponderada razoavel (assumindo que packs menores vendem mais), o COGS medio fica em torno de **50%** em vez de 32%.
+| Plano | Preco Atual | Preco Novo | COGS | Nova Margem |
+|-------|-------------|------------|------|-------------|
+| Lite | R$ 397 | R$ 397 | R$ 95 | 76% (sem mudanca) |
+| Starter | R$ 897 | R$ 897 | R$ 140 | 84% (sem mudanca) |
+| **Pro** | R$ 1.497 | **R$ 1.997** | R$ 734 | **63%** |
+| **Enterprise** | R$ 2.997 | **R$ 4.497** | R$ 1.815 | **60%** |
 
-- `voicePacks.cogsRateOfVoiceRevenue`: 0.32 -> **0.50**
+**Justificativa do aumento:**
+- Pro sobe R$ 500 (+33%): justificavel pelos 150 min de voz inclusos, que valem R$ 148/mes em custo real
+- Enterprise sobe R$ 1.500 (+50%): os 350 min de voz + 18.000 buscas + 4 WhatsApps justificam o premium. Margem sai de 39% para 60%
 
-### 3. Adicionar constante de custo por minuto ao engine
+### Voice Packs
 
-Para referencia e uso futuro, registrar:
-- `voiceCostPerMinuteUsd: 0.175` no ASSUMPTIONS
+O objetivo e manter margem minima de 50% em todos os packs, preservando o desconto por volume (mas moderado).
+
+| Pack | Preco Atual | Preco Novo | COGS | Nova Margem |
+|------|-------------|------------|------|-------------|
+| 100 min | R$ 250 | R$ 250 | R$ 99 | 60% (sem mudanca) |
+| 300 min | R$ 650 | R$ 650 | R$ 296 | 54% (sem mudanca) |
+| 600 min | R$ 1.100 | **R$ 1.200** | R$ 592 | **51%** |
+| 1.000 min | R$ 1.700 | **R$ 1.997** | R$ 986 | **51%** |
+| 2.000 min | R$ 2.900 | **R$ 3.997** | R$ 1.972 | **51%** |
+
+**Nota sobre avgRevenuePerBuyer**: Com os novos precos, a receita media por comprador de voice pack sobe. Assumindo a mesma distribuicao de compras, o `avgRevenuePerBuyer` sera atualizado de R$ 980 para **R$ 1.250** (estimativa conservadora).
+
+---
 
 ## Detalhes Tecnicos
 
-### `src/lib/financial-engine.ts`
+### Arquivo: `src/lib/financial-engine.ts`
 
-1. Adicionar campo `voiceCostPerMinuteUsd: 0.175` e `includedVoiceMinutes` por plano ao `ASSUMPTIONS`:
+1. **Atualizar precos dos planos** (linhas 89-90):
+   - `pro.price`: 1497 -> **1997**
+   - `enterprise.price`: 2997 -> **4497**
 
-```text
-plans: {
-  lite:       { ..., includedVoiceMinutes: 0 },
-  starter:    { ..., includedVoiceMinutes: 0 },
-  pro:        { ..., includedVoiceMinutes: 150 },
-  enterprise: { ..., includedVoiceMinutes: 350 },
-}
-```
+2. **Atualizar voice pack options** (linhas 79-85):
+   - Pack 600 min: 1100 -> **1200**
+   - Pack 1000 min: 1700 -> **1997**
+   - Pack 2000 min: 2900 -> **3997**
 
-2. Atualizar `cogsByPlan` para incluir o custo dos minutos:
-   - pro: 586 + 148 = 734
-   - enterprise: 1470 + 345 = 1815
+3. **Atualizar avgRevenuePerBuyer** (linha 106):
+   - 980 -> **1250**
 
-3. Atualizar `voicePacks.cogsRateOfVoiceRevenue` de 0.32 para 0.50
+### Impacto no Dashboard
 
-4. Adicionar array de packs de voz para referencia na aba de monetizacao:
+- **ARPU sobe**: Pro e Enterprise geram mais receita por cliente
+- **Margem bruta melhora**: de ~65% para ~70%+ no cenario de 200 clientes
+- **DRE**: Lucro operacional aumenta significativamente, especialmente nos cenarios com maior proporcao de Pro/Enterprise
+- **Investor View**: Todos os KPIs de margem melhoram
+- **Monetizacao (Hormozi)**: Voice packs mostram margens mais saudaveis e consistentes
 
-```text
-voicePackOptions: [
-  { price: 250, minutes: 100 },
-  { price: 650, minutes: 300 },
-  { price: 1100, minutes: 600 },
-  { price: 1700, minutes: 1000 },
-  { price: 2900, minutes: 2000 },
-]
-```
-
-### Impacto nas abas
-
-- **Investor View / DRE**: COGS total aumenta (Pro e Enterprise ficam mais caros), reduzindo margem
-- **Custo por Cliente**: `cogsPerActive` sobe para refletir os minutos inclusos
-- **Monetizacao (Hormozi)**: Voice packs com COGS corrigido mostra margem real dos packs
-- **Custos Fixos**: Sem alteracao (custos de voz sao variaveis, nao fixos)
