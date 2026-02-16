@@ -15,10 +15,11 @@ interface Props {
 export function DreView({ currentStatic, projectionRows }: Props) {
   const totals = useMemo(() => {
     const revenue = projectionRows.reduce((a, r) => a + r.revenueTotal, 0);
+    const marketingGross = projectionRows.reduce((a, r) => a + r.marketingGross, 0);
     const marketing = projectionRows.reduce((a, r) => a + r.marketingNet, 0);
     const profit = projectionRows.reduce((a, r) => a + r.profit, 0);
     const newCust = projectionRows.reduce((a, r) => a + r.newCustomers, 0);
-    return { revenue, marketing, profit, newCust, margin: revenue > 0 ? profit / revenue : 0 };
+    return { revenue, marketingGross, marketing, profit, newCust, margin: revenue > 0 ? profit / revenue : 0 };
   }, [projectionRows]);
 
   const chartData = useMemo(() =>
@@ -134,7 +135,7 @@ export function DreView({ currentStatic, projectionRows }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b-2 border-slate-600">
-                {["Mês", "Ativos", "Novos", "Receita", "Marketing (líq.)", "CAC/cliente", "Lucro", "Margem"].map((h, i) => (
+                {["Mês", "Ativos", "Novos", "Receita", "Mkt Bruto", "Marketing (líq.)", "CAC/cliente", "Lucro", "Margem"].map((h, i) => (
                   <th key={h} className={`${i === 0 ? "text-left" : "text-right"} text-slate-300 font-bold py-3 px-3 bg-slate-900`}>{h}</th>
                 ))}
               </tr>
@@ -146,6 +147,7 @@ export function DreView({ currentStatic, projectionRows }: Props) {
                   <td className="py-3 px-3 text-right text-orange-400 font-semibold">{r.activeCustomers}</td>
                   <td className="py-3 px-3 text-right text-sky-300 font-semibold">{r.newCustomers}</td>
                   <td className="py-3 px-3 text-right text-green-400 font-semibold">{brl(r.revenueTotal)}</td>
+                  <td className="py-3 px-3 text-right text-orange-300">{brl(r.marketingGross)}</td>
                   <td className="py-3 px-3 text-right text-red-400">{brl(r.marketingNet)}</td>
                   <td className="py-3 px-3 text-right text-purple-400 font-bold">{brl(r.cacBlendedNet)}</td>
                   <td className="py-3 px-3 text-right text-blue-400 font-bold">{brl(r.profit)}</td>
@@ -159,6 +161,7 @@ export function DreView({ currentStatic, projectionRows }: Props) {
                 <td className="py-3 px-3 text-right text-orange-300 font-bold">{last?.activeCustomers ?? "—"}</td>
                 <td className="py-3 px-3 text-right text-sky-200 font-bold">{totals.newCust}</td>
                 <td className="py-3 px-3 text-right text-green-300 font-bold">{brl(totals.revenue)}</td>
+                <td className="py-3 px-3 text-right text-orange-200 font-bold">{brl(totals.marketingGross)}</td>
                 <td className="py-3 px-3 text-right text-red-300 font-bold">{brl(totals.marketing)}</td>
                 <td className="py-3 px-3 text-right text-purple-300">—</td>
                 <td className="py-3 px-3 text-right text-blue-300 font-bold">{brl(totals.profit)}</td>
@@ -168,7 +171,7 @@ export function DreView({ currentStatic, projectionRows }: Props) {
           </table>
         </div>
         <div className="mt-3 text-xs text-slate-400">
-          "Marketing (líq.)" é gasto do mês. "CAC/cliente" é gasto do mês dividido por novos clientes.
+          "Mkt Bruto" é o valor total investido em tráfego pago. "Marketing (líq.)" é o bruto menos a receita do teste pago. "CAC/cliente" é gasto líquido dividido por novos clientes.
         </div>
       </div>
 
