@@ -1,39 +1,22 @@
 
-# Corrigir Tooltips dos Graficos no Dark Mode
+# Corrigir Labels Cortados no Pie Chart
 
 ## Problema
-Os tooltips dos graficos Recharts que usam `contentStyle` inline estao com texto escuro sobre fundo escuro no dark mode, ficando ilegivel. Isso acontece porque o `contentStyle` define apenas o fundo (`backgroundColor`) mas nao define a cor do texto.
-
-## Onde o problema ocorre
-Todos os graficos que usam o Tooltip padrao do Recharts com `contentStyle` inline (sem componente customizado):
-
-1. **InvestorView.tsx** - Pie chart (distribuicao de clientes) e Bar chart (comparacao cenarios) - 2 tooltips
-2. **AcquisitionView.tsx** - 3 graficos (clientes, marketing, CAC) - 3 tooltips
-3. **MonetizationView.tsx** - Area chart (receita vs assinaturas) - 1 tooltip
-4. **DreView.tsx** - Composed chart (receita vs lucro) - 1 tooltip
-5. **UnitCostView.tsx** - Composed chart - 1 tooltip
-
-Total: **8 tooltips** a corrigir.
-
-## Tooltips que ja estao corretos
-- **InvestmentView.tsx** - CustomTooltip com classes CSS (`bg-popover text-foreground`)
-- **MonetizationView.tsx** - PercentTooltip com classes CSS (`bg-popover text-foreground`)
+No grafico de pizza "Distribuicao de clientes por plano", o label "Enterprise (R$4497): 5%" esta sendo cortado na borda direita do container. Isso acontece porque o `outerRadius` de 110px combinado com labels longos nao cabe dentro do `ResponsiveContainer` de 320px de altura.
 
 ## Solucao
-Adicionar `itemStyle` e `labelStyle` em cada Tooltip inline para garantir que o texto use `hsl(var(--foreground))`:
 
-```tsx
-<Tooltip
-  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-  itemStyle={{ color: "hsl(var(--foreground))" }}
-  labelStyle={{ color: "hsl(var(--foreground))" }}
-  ...
-/>
-```
+### Arquivo: `src/components/dashboard/InvestorView.tsx`
 
-## Arquivos modificados
-1. `src/components/dashboard/InvestorView.tsx` - 2 Tooltips
-2. `src/components/dashboard/AcquisitionView.tsx` - 3 Tooltips
-3. `src/components/dashboard/MonetizationView.tsx` - 1 Tooltip
-4. `src/components/dashboard/DreView.tsx` - 1 Tooltip
-5. `src/components/dashboard/UnitCostView.tsx` - 1 Tooltip
+1. **Reduzir o `outerRadius`** de 110 para 90, dando mais espaco para os labels ao redor
+2. **Aumentar a altura do container** de 320 para 360px para acomodar melhor os labels
+3. **Encurtar os labels** removendo o preco do label inline (que ja aparece no tooltip) — exibir apenas o nome do plano e percentual, ex: "Enterprise: 5%" em vez de "Enterprise (R$4497): 5%"
+
+A opcao 3 e a mais elegante pois resolve o problema na raiz (labels longos demais) e deixa o grafico mais limpo. O preco ja esta disponivel no tooltip ao passar o mouse.
+
+### Mudancas especificas
+- Linha 21: simplificar o `name` no array de distribution para usar apenas o label do plano (sem preco)
+- Linha 78: ajustar o `outerRadius` para 90
+- Linha 75: aumentar height para 360
+
+Isso resolve o corte sem impactar outros graficos do dashboard.
