@@ -14,6 +14,66 @@ export const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits)}%`;
 
 export type PlanKey = "lite" | "starter" | "pro" | "enterprise";
 
+export interface CostItem {
+  id: string;
+  label: string;
+  value: number;
+}
+
+export interface UsdCostItem {
+  id: string;
+  label: string;
+  usd: number;
+}
+
+export interface EditableCostsState {
+  rhItems: CostItem[];
+  toolsBrlItems: CostItem[];
+  toolsUsdItems: UsdCostItem[];
+  usdFx: number;
+  iofAndFeesRate: number;
+  twilioNumberUsdPerCustomer: number;
+  twilioNumberShareOfCustomers: number;
+}
+
+export const DEFAULT_FIXED_COSTS: EditableCostsState = {
+  rhItems: [
+    { id: "support", label: "Suporte", value: 1000 },
+    { id: "automationManager", label: "Gestor de Automação", value: 1300 },
+    { id: "closerFixed", label: "Closer (fixo)", value: 500 },
+    { id: "accounting", label: "Contabilidade", value: 450 },
+    { id: "videoProduction", label: "Produção de Vídeo", value: 1800 },
+    { id: "socialMedia", label: "Social Media", value: 1000 },
+    { id: "marcosSimao", label: "Marcos Simão", value: 3000 },
+    { id: "gestorProjeto", label: "Gestor do Projeto", value: 4000 },
+  ],
+  toolsBrlItems: [
+    { id: "infra", label: "Infraestrutura", value: 245 },
+    { id: "lovable", label: "Lovable", value: 1000 },
+    { id: "gptClaude", label: "GPT / Claude", value: 300 },
+    { id: "db", label: "Banco de Dados", value: 180 },
+    { id: "domain", label: "Domínio", value: 150 },
+  ],
+  toolsUsdItems: [
+    { id: "serpApi", label: "SerpAPI", usd: 250 },
+    { id: "instantly", label: "Instantly", usd: 97 },
+  ],
+  usdFx: 5.22,
+  iofAndFeesRate: 0.08,
+  twilioNumberUsdPerCustomer: 4.25,
+  twilioNumberShareOfCustomers: 0.15,
+};
+
+export function sumFixedCostsFromItems(costs: EditableCostsState, activeCustomers: number) {
+  const usdToBrl = (usd: number) => usd * costs.usdFx * (1 + costs.iofAndFeesRate);
+  const rhTotal = costs.rhItems.reduce((a, i) => a + i.value, 0);
+  const toolsBrlTotal = costs.toolsBrlItems.reduce((a, i) => a + i.value, 0);
+  const toolsUsdTotalBrl = costs.toolsUsdItems.reduce((a, i) => a + usdToBrl(i.usd), 0);
+  const baseFixed = rhTotal + toolsBrlTotal + toolsUsdTotalBrl;
+  const twilioNumbersCost = usdToBrl(costs.twilioNumberUsdPerCustomer) * activeCustomers * costs.twilioNumberShareOfCustomers;
+  return { baseFixed, twilioNumbersCost, totalFixed: baseFixed + twilioNumbersCost };
+}
+
 export const ASSUMPTIONS = {
   plans: {
     lite: { label: "Lite", price: 397, includedSearches: 1000, includedWhatsApps: 1 },
@@ -68,15 +128,7 @@ function calcTaxProgressive(monthlyRevenue: number) {
 }
 
 export function sumFixedCosts(activeCustomers: number) {
-  const f = ASSUMPTIONS.fixedMonthlyCosts;
-  const usdToBrl = (usd: number) => usd * f.usdFx * (1 + f.iofAndFeesRate);
-  const baseFixed =
-    f.support + f.automationManager + f.closerFixed + f.accounting + f.videoProduction +
-    f.infra + f.lovable + f.gptClaude + f.db + f.domain +
-    f.socialMedia + f.marcosSimao + f.gestorProjeto +
-    usdToBrl(f.serpApiUsd + f.instantlyUsd);
-  const twilioNumbersCost = usdToBrl(f.twilioNumberUsdPerCustomer) * activeCustomers * f.twilioNumberShareOfCustomers;
-  return { baseFixed, twilioNumbersCost, totalFixed: baseFixed + twilioNumbersCost };
+  return sumFixedCostsFromItems(DEFAULT_FIXED_COSTS, activeCustomers);
 }
 
 export function planCounts(totalActive: number) {
@@ -180,8 +232,9 @@ export function monthModel(params: {
   churnRate: number;
   pessimisticCAC: boolean;
   hormoziImpact: boolean;
+  fixedCostOverride?: number;
 }): MonthResult {
-  const { month, activePrev, churnRate, pessimisticCAC } = params;
+  const { month, activePrev, churnRate, pessimisticCAC, fixedCostOverride } = params;
   const hormozi = params.hormoziImpact;
   const active = activePrev * (1 - churnRate) + (params.newTarget ?? 0);
   const activeCounts = planCounts(Math.round(active));
@@ -196,12 +249,16 @@ export function monthModel(params: {
 
   const cogsPlans = cogsFromPlans(activeCounts);
   const cogsTotal = cogsPlans + vC;
-  const fixed = sumFixedCosts(Math.round(active));
+  
+  const roundedActive = Math.round(active);
+  const fixedTotal = fixedCostOverride != null
+    ? fixedCostOverride
+    : sumFixedCosts(roundedActive).totalFixed;
+    
   const acq = acquisitionSpend(newCounts, pessimisticCAC);
   const commission = closerCommission(newCounts, onbR);
   const taxes = calcTaxProgressive(revenueTotal);
-  const profit = revenueTotal - cogsTotal - fixed.totalFixed - acq.marketingNet - commission - taxes.tax;
-  const roundedActive = Math.round(active);
+  const profit = revenueTotal - cogsTotal - fixedTotal - acq.marketingNet - commission - taxes.tax;
 
   return {
     month,
@@ -216,7 +273,7 @@ export function monthModel(params: {
     cogsPlans,
     voiceCogs: vC,
     cogsTotal,
-    fixedCosts: fixed.totalFixed,
+    fixedCosts: fixedTotal,
     marketingGross: acq.marketingGross,
     paidTestRevenue: acq.paidTestRevenue,
     marketingNet: acq.marketingNet,
@@ -229,13 +286,12 @@ export function monthModel(params: {
     cacBlendedNet: acq.cacBlendedNet,
     arpu: roundedActive > 0 ? revenueTotal / roundedActive : 0,
     cogsPerActive: roundedActive > 0 ? cogsTotal / roundedActive : 0,
-    fixedPerActive: roundedActive > 0 ? fixed.totalFixed / roundedActive : 0,
-    unitCostPerActiveExMarketing: roundedActive > 0 ? (cogsTotal + fixed.totalFixed) / roundedActive : 0,
+    fixedPerActive: roundedActive > 0 ? fixedTotal / roundedActive : 0,
+    unitCostPerActiveExMarketing: roundedActive > 0 ? (cogsTotal + fixedTotal) / roundedActive : 0,
   };
 }
 
 function rampWeight(month: number): number {
-  // month 1 = 0.5x average, month 12 = 1.5x average (linear)
   return 0.5 + (1.0 * (month - 1)) / 11;
 }
 
@@ -245,10 +301,10 @@ export function build12MonthProjection(opts: {
   churnRate: number;
   pessimisticCAC: boolean;
   hormoziImpact: boolean;
+  fixedCostOverrideFn?: (activeCustomers: number) => number;
 }) {
   const months = 12;
 
-  // Solver: find avgNew such that ramped acquisition hits target
   const solveRamp = (): number[] => {
     let low = 0, high = 2000;
     for (let i = 0; i < 40; i++) {
@@ -269,9 +325,12 @@ export function build12MonthProjection(opts: {
   const rows: MonthResult[] = [];
   let activePrev = opts.startActive;
   for (let m = 1; m <= months; m++) {
+    const activeNext = Math.round(activePrev * (1 - opts.churnRate) + newSchedule[m - 1]);
+    const fixedCostOverride = opts.fixedCostOverrideFn ? opts.fixedCostOverrideFn(activeNext) : undefined;
     const r = monthModel({
       month: m, activePrev, newTarget: newSchedule[m - 1],
       churnRate: opts.churnRate, pessimisticCAC: opts.pessimisticCAC, hormoziImpact: opts.hormoziImpact,
+      fixedCostOverride,
     });
     rows.push(r);
     activePrev = r.activeCustomers;

@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ASSUMPTIONS, build12MonthProjection, monthModel, type MonthResult } from "@/lib/financial-engine";
+import { useMemo, useState, useCallback } from "react";
+import { ASSUMPTIONS, build12MonthProjection, monthModel, sumFixedCostsFromItems, DEFAULT_FIXED_COSTS, type MonthResult, type EditableCostsState } from "@/lib/financial-engine";
 import { InvestorView } from "./InvestorView";
 import { AcquisitionView } from "./AcquisitionView";
 import { MonetizationView } from "./MonetizationView";
@@ -26,18 +26,25 @@ export default function FinancialDashboard() {
   const [tab, setTab] = useState<TabKey>("investor");
   const [scenario, setScenario] = useState<ScenarioKey>("200");
   const [mode, setMode] = useState<ModeKey>("moderate");
+  const [editableCosts, setEditableCosts] = useState<EditableCostsState>(() => structuredClone(DEFAULT_FIXED_COSTS));
 
   const churnRate = mode === "pessimistic" ? ASSUMPTIONS.churnMonthlyPessimistic : ASSUMPTIONS.churnMonthlyBase;
   const pessimisticCAC = mode === "pessimistic";
   const hormoziImpact = mode === "hormozi";
 
+  const fixedCostOverrideFn = useCallback(
+    (activeCustomers: number) => sumFixedCostsFromItems(editableCosts, activeCustomers).totalFixed,
+    [editableCosts]
+  );
+
   const staticScenarios = useMemo(() => {
     return [100, 200, 500].map((t) => {
       const newCustomers = Math.round(t * churnRate);
-      const r = monthModel({ month: 0, activePrev: t, newTarget: newCustomers, churnRate, pessimisticCAC, hormoziImpact });
+      const override = fixedCostOverrideFn(t);
+      const r = monthModel({ month: 0, activePrev: t, newTarget: newCustomers, churnRate, pessimisticCAC, hormoziImpact, fixedCostOverride: override });
       return { name: `${t} clientes`, ...r };
     });
-  }, [churnRate, pessimisticCAC, hormoziImpact]);
+  }, [churnRate, pessimisticCAC, hormoziImpact, fixedCostOverrideFn]);
 
   const currentStatic = useMemo(() => {
     const scenarioIndex = { "100": 0, "200": 1, "500": 2 } as const;
@@ -48,8 +55,9 @@ export default function FinancialDashboard() {
     return build12MonthProjection({
       startActive: 50, targetActive: scenarioTargets[scenario],
       churnRate, pessimisticCAC, hormoziImpact,
+      fixedCostOverrideFn,
     });
-  }, [scenario, churnRate, pessimisticCAC, hormoziImpact]);
+  }, [scenario, churnRate, pessimisticCAC, hormoziImpact, fixedCostOverrideFn]);
 
   const projectionRows = projection.rows;
   const last = projectionRows[projectionRows.length - 1];
@@ -111,7 +119,14 @@ export default function FinancialDashboard() {
         {tab === "monetization" && <MonetizationView projectionRows={projectionRows} last={last} mode={mode} />}
         {tab === "unit" && <UnitCostView last={last} projectionRows={projectionRows} />}
         {tab === "dre" && <DreView currentStatic={currentStatic} projectionRows={projectionRows} />}
-        {tab === "costs" && <FixedCostsView activeCustomers={currentStatic.activeCustomers} />}
+        {tab === "costs" && (
+          <FixedCostsView
+            costs={editableCosts}
+            activeCustomers={currentStatic.activeCustomers}
+            onUpdate={setEditableCosts}
+            onReset={() => setEditableCosts(structuredClone(DEFAULT_FIXED_COSTS))}
+          />
+        )}
 
         <div className="mt-8 text-xs text-slate-500">
           Ajustes recomendados: substituir COGS por plano por custos reais, calibrar CAC por plano com dados por canal, e validar impostos efetivos com contador.
