@@ -139,17 +139,38 @@ export const ASSUMPTIONS = {
       { capAnual: 4_800_000, rate: 0.305 },
     ],
   },
+  lucroPresumido: {
+    irpjRate: 0.048,
+    csllRate: 0.0288,
+    pisRate: 0.0065,
+    cofinsRate: 0.03,
+    issRate: 0.05,
+  },
 } as const;
 
-function calcTaxSimples(monthlyRevenue: number, monthlyPayroll: number) {
-  if (monthlyRevenue <= 0) return { rate: 0, tax: 0, fatorR: 0, anexo: "III" as const };
+function calcTax(monthlyRevenue: number, monthlyPayroll: number) {
+  if (monthlyRevenue <= 0) return { rate: 0, tax: 0, fatorR: 0, anexo: "III" as const, regime: "Simples III" };
   const fatorR = monthlyPayroll / monthlyRevenue;
   const ts = ASSUMPTIONS.taxSimples;
-  const table = fatorR >= ts.fatorRThreshold ? ts.anexoIII : ts.anexoV;
-  const anexo = fatorR >= ts.fatorRThreshold ? ("III" as const) : ("V" as const);
+
+  // Simples Nacional
+  const simplesTable = fatorR >= ts.fatorRThreshold ? ts.anexoIII : ts.anexoV;
+  const simplesAnexo = fatorR >= ts.fatorRThreshold ? "III" : "V";
   const anual = monthlyRevenue * 12;
-  const bracket = table.find((b) => anual <= b.capAnual) || table[table.length - 1];
-  return { rate: bracket.rate, tax: monthlyRevenue * bracket.rate, fatorR, anexo };
+  const bracket = simplesTable.find((b) => anual <= b.capAnual) || simplesTable[simplesTable.length - 1];
+  const simplesRate = bracket.rate;
+  const simplesTax = monthlyRevenue * simplesRate;
+
+  // Lucro Presumido
+  const lp = ASSUMPTIONS.lucroPresumido;
+  const lpRate = lp.irpjRate + lp.csllRate + lp.pisRate + lp.cofinsRate + lp.issRate;
+  const lpTax = monthlyRevenue * lpRate;
+
+  // Escolher o menor
+  if (lpTax < simplesTax) {
+    return { rate: lpRate, tax: lpTax, fatorR, anexo: simplesAnexo as "III" | "V", regime: "Lucro Presumido" };
+  }
+  return { rate: simplesRate, tax: simplesTax, fatorR, anexo: simplesAnexo as "III" | "V", regime: `Simples ${simplesAnexo}` };
 }
 
 export function sumFixedCosts(activeCustomers: number) {
@@ -242,6 +263,7 @@ export interface MonthResult {
   taxes: number;
   fatorR: number;
   anexo: "III" | "V";
+  regime: string;
   profit: number;
   margin: number;
   cacBlendedGross: number;
@@ -286,7 +308,7 @@ export function monthModel(params: {
   const acq = acquisitionSpend(newCounts, pessimisticCAC);
   const commission = closerCommission(newCounts, onbR);
   const payroll = params.monthlyPayroll ?? DEFAULT_FIXED_COSTS.rhItems.reduce((a, i) => a + i.value, 0);
-  const taxes = calcTaxSimples(revenueTotal, payroll);
+  const taxes = calcTax(revenueTotal, payroll);
   const profit = revenueTotal - cogsTotal - fixedTotal - acq.marketingNet - commission - taxes.tax;
 
   return {
@@ -311,6 +333,7 @@ export function monthModel(params: {
     taxes: taxes.tax,
     fatorR: taxes.fatorR,
     anexo: taxes.anexo,
+    regime: taxes.regime,
     profit,
     margin: revenueTotal > 0 ? profit / revenueTotal : 0,
     cacBlendedGross: acq.cacBlendedGross,
