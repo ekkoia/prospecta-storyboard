@@ -63,14 +63,20 @@ function computePhases(rows: MonthResult[]): {
     { name: "Fase 3", label: "Escala", months: [8, 9, 10, 11] },
   ];
 
-  const phases: PhaseData[] = phaseConfig.map((pc) => {
+  const phases: PhaseData[] = phaseConfig.map((pc, idx) => {
     const phaseRows = pc.months.filter((i) => i < rows.length).map((i) => rows[i]);
     const deficit = phaseRows.reduce((acc, r) => acc + Math.min(0, r.profit), 0);
     const lastRow = phaseRows[phaseRows.length - 1];
 
+    let investmentNeeded = Math.abs(deficit);
+    // Fase 1 inclui o déficit histórico
+    if (idx === 0) {
+      investmentNeeded += Math.abs(TRACK_RECORD.currentResult);
+    }
+
     return {
       ...pc,
-      investmentNeeded: Math.abs(deficit),
+      investmentNeeded,
       clientsEnd: lastRow?.activeCustomers ?? 0,
       revenueEnd: lastRow?.revenueTotal ?? 0,
       churnEnd: lastRow?.churnRate ?? 0,

@@ -57,7 +57,7 @@ export default function FinancialDashboard() {
 
   const projection = useMemo(() => {
     return build12MonthProjection({
-      startActive: 50, targetActive: scenarioTargets[scenario],
+      startActive: 5, targetActive: scenarioTargets[scenario],
       churnRate, pessimisticCAC, hormoziImpact,
       fixedCostOverrideFn, monthlyPayroll,
     });
