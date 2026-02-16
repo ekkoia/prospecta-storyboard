@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { type MonthResult, brl, pct, DEFAULT_FIXED_COSTS, type EditableCostsState } from "@/lib/financial-engine";
+import { type MonthResult, brl, pct, type EditableCostsState } from "@/lib/financial-engine";
 import { KpiCard } from "./KpiCard";
 import { Section } from "./Section";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
@@ -236,7 +236,7 @@ function BurnRatePanel({ costs, marketingMonth1 }: { costs: EditableCostsState; 
   );
 }
 
-export function InvestmentView({ projectionRows }: { projectionRows: MonthResult[] }) {
+export function InvestmentView({ projectionRows, editableCosts }: { projectionRows: MonthResult[]; editableCosts: EditableCostsState }) {
   const { phases, cumulativeData, totalInvestmentNeeded, breakEvenMonth, marginMonth12, paybackMonth } =
     useMemo(() => computePhases(projectionRows), [projectionRows]);
 
@@ -318,7 +318,7 @@ export function InvestmentView({ projectionRows }: { projectionRows: MonthResult
       </div>
 
       {/* Burn Rate Panel */}
-      <BurnRatePanel costs={DEFAULT_FIXED_COSTS} marketingMonth1={marketingMonth1} />
+      <BurnRatePanel costs={editableCosts} marketingMonth1={marketingMonth1} />
 
       {/* Phases */}
       <Section title="🎯 Aporte Faseado — Liberação por KPIs">

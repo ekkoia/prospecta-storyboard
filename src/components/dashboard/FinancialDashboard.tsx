@@ -131,7 +131,7 @@ export default function FinancialDashboard() {
             onReset={() => setEditableCosts(structuredClone(DEFAULT_FIXED_COSTS))}
           />
         )}
-        {tab === "investment" && <InvestmentView projectionRows={projectionRows} />}
+        {tab === "investment" && <InvestmentView projectionRows={projectionRows} editableCosts={editableCosts} />}
 
         <div className="mt-8 text-xs text-slate-500">
           Ajustes recomendados: substituir COGS por plano por custos reais, calibrar CAC por plano com dados por canal, e validar impostos efetivos com contador.
