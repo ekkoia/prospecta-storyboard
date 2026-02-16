@@ -70,7 +70,7 @@ export function DreView({ currentStatic, projectionRows }: Props) {
             ["(-) COGS (custos variáveis)", currentStatic.cogsTotal],
             ["(-) Fixos", currentStatic.fixedCosts],
             ["(-) Comissão closer (somente novas vendas)", currentStatic.closerCommission],
-            [`(-) Impostos — Anexo ${currentStatic.anexo} (Fator R: ${pct(currentStatic.fatorR)}, alíq.: ${pct(currentStatic.taxRate)})`, currentStatic.taxes],
+            [`(-) Impostos — ${currentStatic.regime} (Fator R: ${pct(currentStatic.fatorR)}, alíq.: ${pct(currentStatic.taxRate)})`, currentStatic.taxes],
           ].map(([label, val]) => (
             <div key={label as string} className="flex justify-between items-center p-4 bg-slate-700 rounded-lg">
               <span className="text-slate-300">{label as string}</span>

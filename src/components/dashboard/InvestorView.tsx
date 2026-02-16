@@ -48,7 +48,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
               ["Novos necessários (repos. churn)", `${currentStatic.newCustomers}`],
               ["MRR (assinaturas)", brl(currentStatic.subscriptionRevenue)],
               ["Receita total", brl(currentStatic.revenueTotal)],
-              ["Regime tributário", `Anexo ${currentStatic.anexo} (Fator R: ${pct(currentStatic.fatorR)})`],
+              ["Regime tributário", `${currentStatic.regime} (Fator R: ${pct(currentStatic.fatorR)}, alíq.: ${pct(currentStatic.taxRate)})`],
               ["Marketing bruto do mês", brl(currentStatic.marketingGross)],
               ["Marketing líquido do mês", brl(currentStatic.marketingNet)],
               ["CAC por cliente (líquido)", brl(currentStatic.cacBlendedNet)],
