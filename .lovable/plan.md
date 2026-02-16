@@ -1,84 +1,97 @@
 
-# Nova Aba de Detalhamento de Custos Fixos + Correcao do Cambio
+# Aba de Custos Fixos Interativa — Editar, Adicionar e Excluir
 
-## Problema Identificado: Cambio Desatualizado
+## Resumo
 
-O motor financeiro usa `usdFx: 5.69`, mas o dolar atual esta **R$ 5,22**. Essa diferenca impacta todos os custos em USD (SerpAPI, Instantly, numeros Twilio). A correcao sera feita junto com a nova aba.
+Transformar a aba "Custos Fixos" em uma interface totalmente interativa onde o usuario pode **editar valores**, **adicionar novos itens** e **excluir itens existentes** em cada categoria (RH, Ferramentas BRL, Ferramentas USD). Todas as alteracoes propagam automaticamente para as demais abas do dashboard.
 
-## Nova Aba: "Custos Fixos"
+## Arquitetura da Solucao
 
-Criar uma aba dedicada que exibe cada item de custo fixo separado em tres categorias, com subtotais e total geral.
+O problema principal e que `ASSUMPTIONS` e `as const` (imutavel). A solucao e mover os custos fixos para um **estado React** no `FinancialDashboard`, e fazer o engine aceitar esses custos como parametro em vez de ler direto do `ASSUMPTIONS`.
 
-### Categorias e Itens
+### Modelo de dados dos itens editaveis
 
-**Recursos Humanos (BRL)**
+Cada categoria tera uma lista dinamica de itens:
 
-| Item | Valor |
-|------|-------|
-| Suporte | R$ 1.000 |
-| Gestor de Automacao | R$ 1.300 |
-| Closer (fixo) | R$ 500 |
-| Contabilidade | R$ 450 |
-| Producao de Video | R$ 1.800 |
-| Social Media | R$ 1.000 |
-| Marcos Simao | R$ 3.000 |
-| Gestor do Projeto | R$ 4.000 |
-| **Subtotal RH** | **R$ 13.050** |
+```text
+CostItem = { id: string, label: string, value: number }       // BRL
+UsdCostItem = { id: string, label: string, usd: number }      // USD
+```
 
-**Ferramentas e Infra (BRL)**
+O estado no Dashboard sera:
 
-| Item | Valor |
-|------|-------|
-| Infraestrutura | R$ 245 |
-| Lovable | R$ 1.000 |
-| GPT/Claude | R$ 300 |
-| Banco de dados | R$ 180 |
-| Dominio | R$ 150 |
-| **Subtotal Ferramentas BRL** | **R$ 1.875** |
+```text
+{
+  rhItems: CostItem[],
+  toolsBrlItems: CostItem[],
+  toolsUsdItems: UsdCostItem[],
+  usdFx: number,
+  iofAndFeesRate: number,
+  twilioNumberUsdPerCustomer: number,
+  twilioNumberShareOfCustomers: number
+}
+```
 
-**Ferramentas (USD) — convertidas a R$ 5,22 + 8% IOF**
+## Funcionalidades da Interface
 
-| Item | USD | BRL (convertido) |
-|------|-----|-------------------|
-| SerpAPI | $250 | ~R$ 1.409 |
-| Instantly | $97 | ~R$ 547 |
-| **Subtotal USD** | **$347** | **~R$ 1.956** |
+### Editar
+- Clicar no valor abre um input numerico inline
+- Enter ou blur confirma a edicao
+- Valores alterados ficam destacados com borda azul
 
-**Custo Variavel por Cliente (Twilio Numbers)**
+### Adicionar
+- Botao "+ Adicionar" no rodape de cada tabela de categoria
+- Abre uma linha com dois campos: nome do item e valor
+- Enter ou botao de confirmar salva o novo item
 
-| Item | Formula |
-|------|---------|
-| Numero Twilio | $4,25/cliente x 15% dos clientes x cambio |
+### Excluir
+- Icone de lixeira (X) ao lado de cada item
+- Confirmacao visual antes de remover (hover vermelho)
+- Item removido desaparece e totais recalculam
 
-**Total Fixo Base: ~R$ 16.881/mes** (sem Twilio variavel)
+### Resetar
+- Botao "Resetar valores originais" restaura todos os itens ao estado padrao do engine
 
-### Visual
+## Propagacao ao Dashboard
 
-- Grid de cards por categoria com icones distintos
-- Cada card mostra o item e valor em BRL
-- Cards USD mostram valor original em dolares e conversao
-- Rodape com total geral e nota sobre o cambio utilizado
-- Indicacao do custo de Twilio variavel por numero de clientes ativos
+Quando qualquer item e editado/adicionado/excluido:
+1. O estado `editableCosts` atualiza no `FinancialDashboard`
+2. Uma funcao `overrideFixedCosts()` calcula o novo total fixo a partir dos itens do estado
+3. Os `useMemo` de `staticScenarios` e `projection` dependem desse estado, forcando recalculo
+4. Todas as abas (Investor, DRE, Custo por Cliente, etc.) refletem os novos valores
 
 ## Detalhes Tecnicos
 
-### 1. `src/lib/financial-engine.ts` — Corrigir cambio (1 linha)
+### 1. `src/lib/financial-engine.ts` — Exportar defaults e aceitar override
 
-- Linha 46: `usdFx: 5.69` → `usdFx: 5.22`
+- Exportar `DEFAULT_FIXED_COSTS` com os valores originais do `fixedMonthlyCosts`
+- Remover `as const` do `ASSUMPTIONS` para permitir tipagem flexivel
+- Criar funcao `sumFixedCostsFromItems(rhItems, toolsBrlItems, toolsUsdItems, params, activeCustomers)` que calcula o total a partir de listas dinamicas em vez de ler `ASSUMPTIONS.fixedMonthlyCosts`
+- Adicionar parametro opcional `fixedCostOverride?: number` a `monthModel` e `build12MonthProjection` para substituir o calculo interno de custos fixos
 
-### 2. `src/components/dashboard/FixedCostsView.tsx` — Novo arquivo
+### 2. `src/components/dashboard/FixedCostsView.tsx` — Reescrever com CRUD
 
-- Importar `ASSUMPTIONS`, `brl`, `sumFixedCosts` do engine
-- Importar `Section` e `KpiCard`
-- Calcular subtotais por categoria usando os valores do `ASSUMPTIONS.fixedMonthlyCosts`
-- Converter USD para BRL usando a formula do engine (`usd * usdFx * (1 + iofAndFeesRate)`)
-- Renderizar tres secoes (RH, Ferramentas BRL, Ferramentas USD) com tabelas
-- Mostrar total geral e nota sobre cambio e IOF
-- Receber `activeCustomers` como prop para calcular custo Twilio variavel
+- Receber como props: `rhItems`, `toolsBrlItems`, `toolsUsdItems`, parametros de cambio/Twilio, e callbacks `onUpdate`, `onReset`
+- Componente `EditableCell`: input inline para edicao de valores
+- Componente `AddItemRow`: linha com inputs de nome + valor para adicionar novo item
+- Botao de excluir (icone X) em cada linha
+- Parametros editaveis: cambio, IOF, custo Twilio, penetracao Twilio
+- Botao "Resetar valores originais"
 
-### 3. `src/components/dashboard/FinancialDashboard.tsx` — Adicionar aba
+### 3. `src/components/dashboard/FinancialDashboard.tsx` — Estado centralizado
 
-- Importar `FixedCostsView`
-- Adicionar entrada no array `TABS`: `{ key: "costs", label: "🏢 Custos Fixos" }`
-- Atualizar tipo `TabKey` (automatico via `typeof TABS`)
-- Renderizar `FixedCostsView` quando `tab === "costs"`, passando `activeCustomers` do cenario atual
+- Criar estado `editableCosts` com `useState` inicializado a partir dos defaults
+- Funcao `calcFixedTotal()` que soma todos os itens do estado + conversao USD + Twilio
+- Passar `fixedCostOverride` para `monthModel` e `build12MonthProjection`
+- Passar items e callbacks para `FixedCostsView`
+- Incluir `editableCosts` nas dependencias dos `useMemo`
+
+### Fluxo completo
+
+```text
+Usuario edita/adiciona/exclui item na aba Custos
+  -> Callback atualiza estado editableCosts no Dashboard
+  -> useMemo recalcula calcFixedTotal()
+  -> monthModel e build12MonthProjection recebem novo fixedCostOverride
+  -> Todas as abas re-renderizam com novos valores
+```
