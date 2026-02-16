@@ -1,9 +1,11 @@
-import { useMemo } from "react";
-import { type MonthResult, brl, pct } from "@/lib/financial-engine";
+import { useMemo, useState } from "react";
+import { type MonthResult, brl, pct, DEFAULT_FIXED_COSTS, type EditableCostsState } from "@/lib/financial-engine";
 import { KpiCard } from "./KpiCard";
 import { Section } from "./Section";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 const TRACK_RECORD = {
   totalInvested: 34383,
@@ -146,10 +148,99 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+function BurnRatePanel({ costs, marketingMonth1 }: { costs: EditableCostsState; marketingMonth1: number }) {
+  const [open, setOpen] = useState(false);
+
+  const rhTotal = costs.rhItems.reduce((a, i) => a + i.value, 0);
+  const toolsBrlTotal = costs.toolsBrlItems.reduce((a, i) => a + i.value, 0);
+  const usdToBrl = (usd: number) => usd * costs.usdFx * (1 + costs.iofAndFeesRate);
+  const toolsUsdTotalBrl = costs.toolsUsdItems.reduce((a, i) => a + usdToBrl(i.usd), 0);
+  const fixedTotal = rhTotal + toolsBrlTotal + toolsUsdTotalBrl;
+  const burnTotal = fixedTotal + marketingMonth1;
+
+  return (
+    <Section title="🔥 Custo Mensal de Operação (Burn Rate)">
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <div className="text-3xl font-bold text-white">~{formatBrl(burnTotal)}<span className="text-base text-slate-400 font-normal">/mês</span></div>
+            <div className="text-slate-400 text-sm mt-1">Custos fixos {formatBrl(fixedTotal)} + Tráfego {formatBrl(marketingMonth1)}</div>
+          </div>
+          <CollapsibleTrigger asChild>
+            <button className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-sm">
+              {open ? "Recolher" : "Ver detalhes"}
+              <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+            </button>
+          </CollapsibleTrigger>
+        </div>
+
+        <CollapsibleContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+            {/* RH */}
+            <div className="bg-slate-700/60 rounded-xl p-4 border border-slate-600">
+              <div className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wide">Equipe (RH)</div>
+              <div className="text-lg font-bold text-white mb-2">{formatBrl(rhTotal)}<span className="text-xs text-slate-400">/mês</span></div>
+              <div className="space-y-1">
+                {costs.rhItems.map(item => (
+                  <div key={item.id} className="flex justify-between text-xs">
+                    <span className="text-slate-400">{item.label}</span>
+                    <span className="text-slate-300">{formatBrl(item.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ferramentas BRL */}
+            <div className="bg-slate-700/60 rounded-xl p-4 border border-slate-600">
+              <div className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wide">Ferramentas (BRL)</div>
+              <div className="text-lg font-bold text-white mb-2">{formatBrl(toolsBrlTotal)}<span className="text-xs text-slate-400">/mês</span></div>
+              <div className="space-y-1">
+                {costs.toolsBrlItems.map(item => (
+                  <div key={item.id} className="flex justify-between text-xs">
+                    <span className="text-slate-400">{item.label}</span>
+                    <span className="text-slate-300">{formatBrl(item.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ferramentas USD */}
+            <div className="bg-slate-700/60 rounded-xl p-4 border border-slate-600">
+              <div className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wide">Ferramentas (USD)</div>
+              <div className="text-lg font-bold text-white mb-2">~{formatBrl(toolsUsdTotalBrl)}<span className="text-xs text-slate-400">/mês</span></div>
+              <div className="space-y-1">
+                {costs.toolsUsdItems.map(item => (
+                  <div key={item.id} className="flex justify-between text-xs">
+                    <span className="text-slate-400">{item.label} (${item.usd})</span>
+                    <span className="text-slate-300">~{formatBrl(usdToBrl(item.usd))}</span>
+                  </div>
+                ))}
+                <div className="text-slate-500 text-xs mt-1">Câmbio: R$ {costs.usdFx} + IOF {(costs.iofAndFeesRate * 100).toFixed(0)}%</div>
+              </div>
+            </div>
+
+            {/* Tráfego */}
+            <div className="bg-slate-700/60 rounded-xl p-4 border border-slate-600">
+              <div className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wide">Tráfego Pago</div>
+              <div className="text-lg font-bold text-white mb-2">{formatBrl(marketingMonth1)}<span className="text-xs text-slate-400">/mês</span></div>
+              <div className="text-slate-500 text-xs">Investimento bruto em mídia do mês 1. Varia conforme o ritmo de aquisição do cenário.</div>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      <p className="text-slate-500 text-sm mt-4 italic border-l-2 border-slate-600 pl-3">
+        Esse é o custo para manter a operação rodando. Nos primeiros meses, a receita não cobre esse custo — por isso o aporte cobre o gap até a receita escalar.
+      </p>
+    </Section>
+  );
+}
+
 export function InvestmentView({ projectionRows }: { projectionRows: MonthResult[] }) {
   const { phases, cumulativeData, totalInvestmentNeeded, breakEvenMonth, marginMonth12, paybackMonth } =
     useMemo(() => computePhases(projectionRows), [projectionRows]);
 
+  const marketingMonth1 = projectionRows[0]?.marketingGross ?? 0;
   const phaseColors = ["from-amber-600 to-amber-700", "from-cyan-600 to-cyan-700", "from-emerald-600 to-emerald-700"];
   const phaseEmojis = ["🏗️", "🚀", "📈"];
 
@@ -225,6 +316,9 @@ export function InvestmentView({ projectionRows }: { projectionRows: MonthResult
           tone="purple"
         />
       </div>
+
+      {/* Burn Rate Panel */}
+      <BurnRatePanel costs={DEFAULT_FIXED_COSTS} marketingMonth1={marketingMonth1} />
 
       {/* Phases */}
       <Section title="🎯 Aporte Faseado — Liberação por KPIs">
