@@ -1,71 +1,80 @@
 
 
-# Implementar Fator R do Simples Nacional na Engine Financeira
+# Adicionar Lucro Presumido como Regime Tributario Alternativo
 
 ## Contexto
 
-Hoje o motor financeiro usa faixas de imposto genéricas. A proposta é substituí-las pela lógica real do **Simples Nacional**, considerando o **Fator R** (razão entre folha de pagamento e faturamento bruto) para determinar se a empresa se enquadra no **Anexo III** (alíquotas menores) ou no **Anexo V** (alíquotas maiores).
+Atualmente o motor calcula apenas Simples Nacional (Anexo III ou V). Quando o Fator R e muito baixo (ex: 2,6% no cenario de 500 clientes), o Anexo V aplica aliquotas altas (~19,5%). O **Lucro Presumido** pode ser mais vantajoso nesses casos, com carga total entre ~16% e ~18%.
 
-**Fator R = Folha de Pagamento / Receita Bruta**
-- Se Fator R >= 28%: **Anexo III** (alíquotas de ~6% a ~13,5%)
-- Se Fator R < 28%: **Anexo V** (alíquotas de ~15,5% a ~19,5%)
+## Logica de Decisao
 
-## Como vai funcionar
+O motor vai calcular os 3 regimes e escolher automaticamente o de menor imposto:
 
-1. A "folha de pagamento" será calculada automaticamente a partir dos itens de RH já cadastrados nos custos fixos (Suporte, Gestor de Automação, Closer, etc.)
-2. A cada cálculo de imposto, o motor compara a folha com a receita mensal para determinar o Fator R
-3. Com base no Fator R, escolhe Anexo III ou V e aplica a alíquota correspondente à faixa de faturamento anualizado
-4. O resultado (Fator R, Anexo escolhido e alíquota) será visível no dashboard
+1. **Simples Nacional - Anexo III** (se Fator R >= 28%)
+2. **Simples Nacional - Anexo V** (se Fator R < 28%)
+3. **Lucro Presumido** (aliquota fixa composta)
 
-## Detalhe Técnico
+A escolha sera: entre o Anexo aplicavel (III ou V) e o Lucro Presumido, usar o que resultar em menor imposto.
+
+## Composicao do Lucro Presumido
+
+| Tributo | Aliquota |
+|---------|----------|
+| IRPJ (15% sobre 32% presuncao) | 4,80% |
+| CSLL (9% sobre 32% presuncao) | 2,88% |
+| PIS | 0,65% |
+| COFINS | 3,00% |
+| ISS (municipal, padrao) | 5,00% |
+| **Total** | **~16,33%** |
+
+Sera adicionado como parametro editavel para ajuste fino (ex: ISS varia por municipio).
+
+## Detalhe Tecnico
 
 ### Arquivo: `src/lib/financial-engine.ts`
 
-**1. Substituir `taxBrackets` por duas tabelas (Anexo III e V):**
+**1. Adicionar parametros do Lucro Presumido ao `ASSUMPTIONS`:**
 
 ```text
-taxSimples: {
-  fatorRThreshold: 0.28,
-  anexoIII: [
-    { capAnual: 180_000,   rate: 0.06 },
-    { capAnual: 360_000,   rate: 0.112 },
-    { capAnual: 720_000,   rate: 0.135 },
-    { capAnual: 1_800_000, rate: 0.16 },
-    { capAnual: 3_600_000, rate: 0.21 },
-    { capAnual: 4_800_000, rate: 0.33 },
-  ],
-  anexoV: [
-    { capAnual: 180_000,   rate: 0.155 },
-    { capAnual: 360_000,   rate: 0.18 },
-    { capAnual: 720_000,   rate: 0.195 },
-    { capAnual: 1_800_000, rate: 0.205 },
-    { capAnual: 3_600_000, rate: 0.23 },
-    { capAnual: 4_800_000, rate: 0.305 },
-  ],
+lucroPresumido: {
+  irpjRate: 0.048,    // 15% sobre 32% presuncao
+  csllRate: 0.0288,   // 9% sobre 32% presuncao
+  pisRate: 0.0065,
+  cofinsRate: 0.03,
+  issRate: 0.05,
+  // Total: ~16,33%
 }
 ```
 
-**2. Atualizar `calcTaxProgressive`** para receber a folha de pagamento mensal (soma dos itens de RH) e calcular o Fator R:
+**2. Criar funcao `calcLucroPresumido`:**
+- Soma todas as aliquotas componentes
+- Retorna `{ rate, tax, regime: "LP" }`
 
-- Calcular `fatorR = folhaMensal / receitaMensal`
-- Escolher anexo III ou V conforme o threshold de 28%
-- Buscar a faixa com base na receita anualizada (`receitaMensal * 12`)
-- Retornar `{ rate, tax, fatorR, anexo }`
+**3. Atualizar `calcTaxSimples` para `calcTax`:**
+- Calcular imposto do Simples (Anexo III ou V conforme Fator R)
+- Calcular imposto do Lucro Presumido
+- Comparar e retornar o menor
+- Retornar `{ rate, tax, fatorR, anexo, regime }` onde regime pode ser `"Simples III"`, `"Simples V"` ou `"Lucro Presumido"`
 
-**3. Atualizar `monthModel`** para passar a folha de pagamento ao cálculo de imposto. A folha será extraída dos custos fixos (soma dos `rhItems`), ou dos valores default quando não houver override.
-
-**4. Atualizar `MonthResult`** para incluir `fatorR` e `anexo` ("III" ou "V"), permitindo exibição no dashboard.
+**4. Atualizar `MonthResult`:**
+- Alterar campo `anexo` para `regime: string` (ex: "Simples III", "Simples V", "Lucro Presumido")
+- Manter `fatorR` para contexto
 
 ### Arquivo: `src/components/dashboard/InvestorView.tsx`
 
-- Adicionar uma linha no painel de Resumo Financeiro mostrando: **"Regime tributário"** com valor tipo `"Anexo III (Fator R: 32%)"` ou `"Anexo V (Fator R: 18%)"`
-- A linha de "Margem líquida" já refletirá o imposto correto automaticamente
+- Atualizar a linha "Regime tributario" para mostrar o regime escolhido e a aliquota
+- Ex: `"Simples III (Fator R: 42%, aliq: 11,2%)"` ou `"Lucro Presumido (aliq: 16,3%)"`
 
 ### Arquivo: `src/components/dashboard/DreView.tsx`
 
-- Na linha de impostos da DRE, exibir o anexo e Fator R como contexto adicional
+- Atualizar a linha de impostos para refletir o novo campo `regime` em vez de `anexo`
 
-### Impacto esperado
+### Arquivo: `src/components/dashboard/FinancialDashboard.tsx`
 
-- Nos cenários de 100 e 200 clientes, a folha de RH (~R$ 13k) tende a representar mais de 28% da receita, enquadrando no **Anexo III** (alíquotas menores)
-- No cenário de 500 clientes, a receita sobe muito e o Fator R cai abaixo de 28%, podendo migrar para o **Anexo V** (alíquotas maiores) -- isso explica comportamentos de margem e adiciona realismo ao modelo
+- Nenhuma alteracao necessaria (ja passa `monthlyPayroll` corretamente)
+
+## Impacto Esperado
+
+- **100 e 200 clientes**: Fator R alto, continua no **Simples Anexo III** (~11,2%) -- menor que Lucro Presumido
+- **500 clientes**: Fator R cai para ~2,6%, Anexo V daria ~19,5%. O motor vai escolher **Lucro Presumido (~16,3%)** por ser mais vantajoso
+- Isso adiciona realismo: na pratica, contadores recomendam exatamente essa migracão quando o Simples fica desvantajoso
