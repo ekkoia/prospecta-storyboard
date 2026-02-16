@@ -41,7 +41,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Section title="📌 1 tela / 8 números (o resumo que o investidor quer)">
+        <Section title="📊 Resumo Financeiro Mensal">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             {[
               ["Clientes ativos", `${currentStatic.activeCustomers}`],
