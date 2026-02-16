@@ -46,6 +46,7 @@ export const DEFAULT_FIXED_COSTS: EditableCostsState = {
     { id: "socialMedia", label: "Social Media", value: 1000 },
     { id: "marcosSimao", label: "Marcos Simão", value: 3000 },
     { id: "gestorProjeto", label: "Gestor do Projeto", value: 4000 },
+    { id: "prolaboreSocios", label: "Pro-labore Sócios", value: 12000 },
   ],
   toolsBrlItems: [
     { id: "infra", label: "Infraestrutura", value: 245 },
