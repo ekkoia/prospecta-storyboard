@@ -38,12 +38,13 @@ export const ASSUMPTIONS = {
     avgRevenuePerBuyer: 980,
     cogsRateOfVoiceRevenue: 0.32,
   },
-  cogsByPlan: { lite: 95, starter: 140, pro: 290, enterprise: 780 } as Record<PlanKey, number>,
+  cogsByPlan: { lite: 95, starter: 140, pro: 586, enterprise: 1470 } as Record<PlanKey, number>,
   fixedMonthlyCosts: {
     support: 1000, automationManager: 1300, closerFixed: 500, accounting: 450,
     videoProduction: 1800, infra: 245, lovable: 1000, gptClaude: 300, db: 180, domain: 150,
+    socialMedia: 1000, marcosSimao: 3000, gestorProjeto: 4000,
     usdFx: 5.69, iofAndFeesRate: 0.08,
-    tallyUsd: 26, clickupUsd: 30, instantlyUsd: 97,
+    serpApiUsd: 250, instantlyUsd: 97,
     twilioNumberUsdPerCustomer: 4.25, twilioNumberShareOfCustomers: 0.15,
   },
   closer: {
@@ -72,7 +73,8 @@ export function sumFixedCosts(activeCustomers: number) {
   const baseFixed =
     f.support + f.automationManager + f.closerFixed + f.accounting + f.videoProduction +
     f.infra + f.lovable + f.gptClaude + f.db + f.domain +
-    usdToBrl(f.tallyUsd + f.clickupUsd + f.instantlyUsd);
+    f.socialMedia + f.marcosSimao + f.gestorProjeto +
+    usdToBrl(f.serpApiUsd + f.instantlyUsd);
   const twilioNumbersCost = usdToBrl(f.twilioNumberUsdPerCustomer) * activeCustomers * f.twilioNumberShareOfCustomers;
   return { baseFixed, twilioNumbersCost, totalFixed: baseFixed + twilioNumbersCost };
 }
