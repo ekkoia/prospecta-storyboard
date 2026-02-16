@@ -15,6 +15,13 @@ const TRACK_RECORD = {
   period: "Jun/24 – Dez/24",
 };
 
+interface MonthDetail {
+  month: number;
+  revenue: number;
+  totalCosts: number;
+  gap: number;
+}
+
 interface PhaseData {
   name: string;
   label: string;
@@ -24,6 +31,7 @@ interface PhaseData {
   revenueEnd: number;
   churnEnd: number;
   kpis: { clients: number; revenue: number; churn: number };
+  monthDetails: MonthDetail[];
 }
 
 function computePhases(rows: MonthResult[]): {
@@ -74,6 +82,13 @@ function computePhases(rows: MonthResult[]): {
       investmentNeeded += Math.abs(TRACK_RECORD.currentResult);
     }
 
+    const monthDetails: MonthDetail[] = phaseRows.map(r => ({
+      month: r.month,
+      revenue: r.revenueTotal,
+      totalCosts: r.cogsTotal + r.fixedCosts + r.marketingNet + r.closerCommission + r.taxes,
+      gap: r.profit,
+    }));
+
     return {
       ...pc,
       investmentNeeded,
@@ -85,6 +100,7 @@ function computePhases(rows: MonthResult[]): {
         revenue: lastRow?.revenueTotal ?? 0,
         churn: lastRow?.churnRate ?? 0,
       },
+      monthDetails,
     };
   });
 
@@ -111,6 +127,8 @@ const formatBrl = (v: number) =>
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
+  const cumulativeEntry = payload.find((p: any) => p.dataKey === "cumulative");
+  const flowValue = cumulativeEntry?.payload?.flow;
   return (
     <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 text-sm shadow-xl">
       <p className="text-slate-300 font-semibold mb-1">{label}</p>
@@ -119,6 +137,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           {p.name}: {formatBrl(p.value)}
         </p>
       ))}
+      {flowValue !== undefined && (
+        <p className={flowValue >= 0 ? "text-emerald-400" : "text-red-400"}>
+          Fluxo do mês: {formatBrl(flowValue)}
+        </p>
+      )}
     </div>
   );
 };
@@ -206,7 +229,7 @@ export function InvestmentView({ projectionRows }: { projectionRows: MonthResult
       {/* Phases */}
       <Section title="🎯 Aporte Faseado — Liberação por KPIs">
         <p className="text-slate-400 text-sm mb-4">
-          O investidor libera cada tranche apenas quando os KPIs da fase anterior forem atingidos.
+          O aporte de cada fase cobre o déficit operacional dos meses em que a receita ainda não paga todos os custos (RH, ferramentas, tráfego pago, COGS e impostos). O investidor só libera a próxima fase quando os KPIs forem atingidos.
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {phases.map((phase, i) => (
@@ -244,6 +267,33 @@ export function InvestmentView({ projectionRows }: { projectionRows: MonthResult
                   <span className="font-bold">{pct(phase.kpis.churn)}</span>
                 </div>
               </div>
+
+              {/* Monthly breakdown */}
+              {phase.monthDetails.some(m => m.gap < 0) && (
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <div className="text-white/80 font-semibold text-xs uppercase tracking-wide mb-2">Composição mensal</div>
+                  <div className="space-y-1.5">
+                    {phase.monthDetails.map(m => (
+                      <div key={m.month} className="flex items-center justify-between text-xs">
+                        <span className="text-white/70">Mês {m.month}</span>
+                        <div className="flex gap-3">
+                          <span className="text-emerald-300">{formatBrl(m.revenue)}</span>
+                          <span className="text-red-300">-{formatBrl(m.totalCosts)}</span>
+                          <span className={`font-bold ${m.gap >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+                            {formatBrl(m.gap)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {i === 0 && (
+                    <div className="flex items-center justify-between text-xs mt-1.5 pt-1.5 border-t border-white/10">
+                      <span className="text-white/70">Déficit histórico</span>
+                      <span className="font-bold text-red-300">{formatBrl(TRACK_RECORD.currentResult)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
