@@ -69,6 +69,7 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
             <XAxis dataKey="month" stroke="hsl(var(--muted))" />
             <YAxis stroke="hsl(var(--muted))" />
             <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+              itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }}
               formatter={(value: number) => `${value} clientes`} />
             <Legend />
             <Area type="monotone" dataKey="activeCustomers" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#gradActive)" name="Clientes ativos" />
@@ -88,6 +89,7 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
             <YAxis yAxisId="left" stroke="hsl(var(--muted))" tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
             <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted))" tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
             <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+              itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }}
               formatter={(value: number) => brl(value)} />
             <Legend />
             <Bar yAxisId="left" dataKey="marketingNet" fill="hsl(var(--muted))" opacity={0.6} name="Marketing líquido/mês" />
@@ -106,6 +108,7 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
             <XAxis dataKey="month" stroke="hsl(var(--muted))" />
             <YAxis stroke="hsl(var(--muted))" tickFormatter={(v: number) => brl(v)} />
             <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+              itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }}
               formatter={(value: number) => brl(value)} />
             <Legend />
             <Bar dataKey="cacBlendedGross" fill="hsl(var(--muted))" opacity={0.5} name="CAC bruto" />

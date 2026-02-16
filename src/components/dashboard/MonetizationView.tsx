@@ -72,7 +72,7 @@ export function MonetizationView({ projectionRows, last, mode }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" stroke="hsl(var(--muted))" />
               <YAxis stroke="hsl(var(--muted))" />
-              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} formatter={(v: any) => brl(v)} />
+              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }} formatter={(v: any) => brl(v)} />
               <Legend />
               <Area type="monotone" dataKey="subscriptionRevenue" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.15} name="Assinaturas" />
               <Area type="monotone" dataKey="moneyModelsDelta" stroke="hsl(var(--muted))" fill="hsl(var(--muted))" fillOpacity={0.15} name="Delta Money Models" />

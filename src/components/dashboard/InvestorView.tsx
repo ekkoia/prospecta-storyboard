@@ -79,7 +79,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
                 outerRadius={110} dataKey="value">
                 {distribution.map((entry, idx) => (<Cell key={idx} fill={entry.color} />))}
               </Pie>
-              <Tooltip formatter={(v: any) => `${v} clientes`} contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+              <Tooltip formatter={(v: any) => `${v} clientes`} contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }} />
             </PieChart>
           </ResponsiveContainer>
         </Section>
@@ -93,6 +93,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
               <XAxis dataKey="name" stroke="hsl(var(--muted))" />
               <YAxis stroke="hsl(var(--muted))" />
               <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }}
                 formatter={(value: any, key: any) => (key === "Margem %" ? `${value}%` : brl(value))} />
               <Legend />
               <Bar dataKey="Receita Total" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
