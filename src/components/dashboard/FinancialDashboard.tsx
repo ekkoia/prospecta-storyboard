@@ -6,6 +6,7 @@ import { MonetizationView } from "./MonetizationView";
 import { UnitCostView } from "./UnitCostView";
 import { DreView } from "./DreView";
 import { FixedCostsView } from "./FixedCostsView";
+import { InvestmentView } from "./InvestmentView";
 
 const TABS = [
   { key: "investor", label: "👔 Investor View" },
@@ -14,6 +15,7 @@ const TABS = [
   { key: "unit", label: "🧾 Custo por Cliente" },
   { key: "dre", label: "📑 DRE" },
   { key: "costs", label: "🏢 Custos Fixos" },
+  { key: "investment", label: "💰 Aporte & Fases" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -129,6 +131,7 @@ export default function FinancialDashboard() {
             onReset={() => setEditableCosts(structuredClone(DEFAULT_FIXED_COSTS))}
           />
         )}
+        {tab === "investment" && <InvestmentView projectionRows={projectionRows} />}
 
         <div className="mt-8 text-xs text-slate-500">
           Ajustes recomendados: substituir COGS por plano por custos reais, calibrar CAC por plano com dados por canal, e validar impostos efetivos com contador.
