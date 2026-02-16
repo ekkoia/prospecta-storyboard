@@ -43,7 +43,7 @@ export const ASSUMPTIONS = {
     support: 1000, automationManager: 1300, closerFixed: 500, accounting: 450,
     videoProduction: 1800, infra: 245, lovable: 1000, gptClaude: 300, db: 180, domain: 150,
     socialMedia: 1000, marcosSimao: 3000, gestorProjeto: 4000,
-    usdFx: 5.69, iofAndFeesRate: 0.08,
+    usdFx: 5.22, iofAndFeesRate: 0.08,
     serpApiUsd: 250, instantlyUsd: 97,
     twilioNumberUsdPerCustomer: 4.25, twilioNumberShareOfCustomers: 0.15,
   },
