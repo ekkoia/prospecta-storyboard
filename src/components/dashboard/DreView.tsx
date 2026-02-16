@@ -108,6 +108,7 @@ export function DreView({ currentStatic, projectionRows }: Props) {
             <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted))" fontSize={11} tickFormatter={(v: number) => `${v}%`} />
             <Tooltip
               contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+              itemStyle={{ color: "hsl(var(--foreground))" }}
               labelStyle={{ color: "hsl(var(--foreground))" }}
               formatter={(value: number, name: string) =>
                 name === "margem" ? [`${value}%`, "Margem %"] : [brl(value), name === "receita" ? "Receita" : "Lucro"]
