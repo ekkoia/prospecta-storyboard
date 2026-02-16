@@ -1,10 +1,12 @@
+import { useState } from "react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, ComposedChart,
   Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { brl, type MonthResult } from "@/lib/financial-engine";
+import { brl, ASSUMPTIONS, type MonthResult, type PlanKey } from "@/lib/financial-engine";
 import { KpiCard } from "./KpiCard";
 import { Section } from "./Section";
+import { Slider } from "@/components/ui/slider";
 
 interface Props {
   projectionRows: MonthResult[];
@@ -14,6 +16,8 @@ interface Props {
 }
 
 export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, last }: Props) {
+  const [budget, setBudget] = useState(5000);
+
   // Dados com marketing acumulado
   const enrichedRows = projectionRows.reduce<(MonthResult & { marketingCumulative: number })[]>((acc, row, idx) => {
     const prev = idx > 0 ? acc[idx - 1].marketingCumulative : 0;
@@ -22,14 +26,34 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
   }, []);
 
   const totalInvestment = projectionRows.reduce((acc, r) => acc + r.marketingNet, 0);
+  const totalMarketingGross = projectionRows.reduce((acc, r) => acc + r.marketingGross, 0);
+  const avgMonthlyGross = totalMarketingGross / 12;
+
+  // Simulador: CAC blended bruto ponderado pelo mix
+  const mix = ASSUMPTIONS.mix;
+  const cacByPlan = ASSUMPTIONS.cacByPlanGross;
+  const plans = ASSUMPTIONS.plans;
+  const planKeys = Object.keys(mix) as PlanKey[];
+  const cacBlendedGross = planKeys.reduce((acc, k) => acc + cacByPlan[k] * mix[k], 0);
+
+  const clientesNovos = cacBlendedGross > 0 ? budget / cacBlendedGross : 0;
+  const clientesPorPlano = planKeys.map(k => ({
+    key: k,
+    label: plans[k].label,
+    count: clientesNovos * mix[k],
+    revenue: clientesNovos * mix[k] * plans[k].price,
+  }));
+  const receitaEstimada = clientesPorPlano.reduce((acc, p) => acc + p.revenue, 0);
+  const roi = budget > 0 ? receitaEstimada / budget : 0;
 
   return (
     <>
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard title="Novos clientes/mês" value={`${avgNewPerMonth}`} sub="média (rampa progressiva)" tone="orange" />
         <KpiCard title={`Novos mês 1`} value={`${newSchedule[0]}`} sub="início da rampa" tone="orange" />
         <KpiCard title={`Novos mês 12`} value={`${newSchedule[11]}`} sub="fim da rampa" tone="orange" />
+        <KpiCard title="Investimento médio/mês" value={brl(avgMonthlyGross)} sub="tráfego pago (bruto)" tone="pink" />
         <KpiCard title="Teste pago (mês 12)" value={brl(last.paidTestRevenue)} sub="abatimento do CAC" tone="green" />
         <KpiCard title="CAC líquido (mês 12)" value={brl(last.cacBlendedNet)} sub="custo por cliente novo" tone="purple" />
         <KpiCard title="Investimento total 12m" value={brl(totalInvestment)} sub="marketing líquido acumulado" tone="blue" />
@@ -96,6 +120,61 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
         </ResponsiveContainer>
         <div className="mt-2 text-xs text-slate-400">
           A diferença entre o CAC bruto e líquido mostra o impacto do teste pago na redução do custo de aquisição.
+        </div>
+      </Section>
+
+      {/* Simulador de Tráfego Pago */}
+      <Section title="🚀 Simulador de Orçamento de Tráfego Pago">
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-slate-300">Orçamento mensal:</span>
+              <span className="text-2xl font-bold text-amber-400">{brl(budget)}</span>
+            </div>
+            <Slider
+              value={[budget]}
+              onValueChange={(v) => setBudget(v[0])}
+              min={1000}
+              max={50000}
+              step={500}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-slate-500 mt-1">
+              <span>R$ 1.000</span>
+              <span>R$ 50.000</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+              <div className="text-slate-400 text-xs mb-1">Clientes novos/mês</div>
+              <div className="text-2xl font-bold text-white">{clientesNovos.toFixed(1)}</div>
+              <div className="text-slate-500 text-xs mt-1">CAC blended: {brl(cacBlendedGross)}</div>
+            </div>
+            <div className="bg-slate-700/50 rounded-lg p-4">
+              <div className="text-slate-400 text-xs mb-2">Distribuição por plano</div>
+              {clientesPorPlano.map(p => (
+                <div key={p.key} className="flex justify-between text-sm text-slate-300">
+                  <span>{p.label}</span>
+                  <span className="font-medium text-white">{p.count.toFixed(1)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+              <div className="text-slate-400 text-xs mb-1">Receita mensal estimada</div>
+              <div className="text-2xl font-bold text-emerald-400">{brl(receitaEstimada)}</div>
+              <div className="text-slate-500 text-xs mt-1">dos novos clientes</div>
+            </div>
+            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+              <div className="text-slate-400 text-xs mb-1">ROI estimado</div>
+              <div className="text-2xl font-bold text-amber-400">{roi.toFixed(1)}x</div>
+              <div className="text-slate-500 text-xs mt-1">receita / investimento</div>
+            </div>
+          </div>
+
+          <div className="text-xs text-slate-500">
+            * Simulação baseada no CAC blended bruto ({brl(cacBlendedGross)}/cliente) e no mix atual de planos. Não considera churn, sazonalidade ou variações de conversão.
+          </div>
         </div>
       </Section>
 
