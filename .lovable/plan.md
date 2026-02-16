@@ -1,84 +1,84 @@
 
+# Nova Aba de Detalhamento de Custos Fixos + Correcao do Cambio
 
-# Ajuste de Custos Reais no Motor Financeiro
+## Problema Identificado: Cambio Desatualizado
 
-## Resumo das Alteracoes
+O motor financeiro usa `usdFx: 5.69`, mas o dolar atual esta **R$ 5,22**. Essa diferenca impacta todos os custos em USD (SerpAPI, Instantly, numeros Twilio). A correcao sera feita junto com a nova aba.
 
-Atualizar o objeto `ASSUMPTIONS` em `src/lib/financial-engine.ts` para refletir os custos reais da operacao, removendo ferramentas nao utilizadas e adicionando novas despesas fixas e custos de infraestrutura de servicos.
+## Nova Aba: "Custos Fixos"
 
-## 1. Custos Fixos Mensais (BRL) — Adicionar
+Criar uma aba dedicada que exibe cada item de custo fixo separado em tres categorias, com subtotais e total geral.
+
+### Categorias e Itens
+
+**Recursos Humanos (BRL)**
 
 | Item | Valor |
 |------|-------|
+| Suporte | R$ 1.000 |
+| Gestor de Automacao | R$ 1.300 |
+| Closer (fixo) | R$ 500 |
+| Contabilidade | R$ 450 |
+| Producao de Video | R$ 1.800 |
 | Social Media | R$ 1.000 |
 | Marcos Simao | R$ 3.000 |
-| Gestor do Projeto/Estrategia | R$ 4.000 |
-| **Total adicionado** | **R$ 8.000/mes** |
+| Gestor do Projeto | R$ 4.000 |
+| **Subtotal RH** | **R$ 13.050** |
 
-## 2. Ferramentas USD — Remover
+**Ferramentas e Infra (BRL)**
 
-| Item | Valor USD | Motivo |
-|------|-----------|--------|
-| Tally | $26 | Nao utilizado mais |
-| ClickUp | $30 | Nao utilizado mais |
+| Item | Valor |
+|------|-------|
+| Infraestrutura | R$ 245 |
+| Lovable | R$ 1.000 |
+| GPT/Claude | R$ 300 |
+| Banco de dados | R$ 180 |
+| Dominio | R$ 150 |
+| **Subtotal Ferramentas BRL** | **R$ 1.875** |
 
-## 3. Ferramentas USD — Adicionar/Manter
+**Ferramentas (USD) — convertidas a R$ 5,22 + 8% IOF**
 
-| Item | Valor USD | Observacao |
-|------|-----------|------------|
-| SerpAPI | $250 | Plano Big Data (30k buscas) — NOVO |
-| Instantly | $97 | Ja existe, manter |
-| VAPI + Twilio (base) | Variavel | Custo por minuto adicionado ao COGS dos planos com voz |
+| Item | USD | BRL (convertido) |
+|------|-----|-------------------|
+| SerpAPI | $250 | ~R$ 1.409 |
+| Instantly | $97 | ~R$ 547 |
+| **Subtotal USD** | **$347** | **~R$ 1.956** |
 
-## 4. COGS por Plano — Atualizar com custo de voz
+**Custo Variavel por Cliente (Twilio Numbers)**
 
-Somente Pro e Enterprise incluem IA de ligacao. Custo real por minuto: $0.32, convertido a BRL (× 5.69 × 1.08 = ~R$1.97/min).
+| Item | Formula |
+|------|---------|
+| Numero Twilio | $4,25/cliente x 15% dos clientes x cambio |
 
-| Plano | COGS atual | Minutos voz incluidos | Custo voz (BRL) | Novo COGS |
-|-------|------------|----------------------|-----------------|-----------|
-| Lite | R$ 95 | 0 | R$ 0 | R$ 95 |
-| Starter | R$ 140 | 0 | R$ 0 | R$ 140 |
-| Pro | R$ 290 | 150 min/mes | ~R$ 296 | R$ 586 |
-| Enterprise | R$ 780 | 350 min/mes | ~R$ 690 | R$ 1.470 |
+**Total Fixo Base: ~R$ 16.881/mes** (sem Twilio variavel)
 
-## 5. Impacto nos Custos Fixos Totais
+### Visual
 
-Antes (base fixa sem Twilio variavel):
-
-```text
-Custos BRL:  1000 + 1300 + 500 + 450 + 1800 + 245 + 1000 + 300 + 180 + 150 = R$ 7.125
-Custos USD:  (26 + 30 + 97) × 5.69 × 1.08 = ~R$ 940
-Total base:  ~R$ 8.065/mes
-```
-
-Depois:
-
-```text
-Custos BRL:  7.125 + 1.000 + 3.000 + 4.000 = R$ 15.125
-Custos USD:  (250 + 97) × 5.69 × 1.08 = ~R$ 2.133
-Total base:  ~R$ 17.258/mes (+R$ 9.193)
-```
+- Grid de cards por categoria com icones distintos
+- Cada card mostra o item e valor em BRL
+- Cards USD mostram valor original em dolares e conversao
+- Rodape com total geral e nota sobre o cambio utilizado
+- Indicacao do custo de Twilio variavel por numero de clientes ativos
 
 ## Detalhes Tecnicos
 
-### Arquivo: `src/lib/financial-engine.ts`
+### 1. `src/lib/financial-engine.ts` — Corrigir cambio (1 linha)
 
-**1. `fixedMonthlyCosts` — Atualizar objeto (linhas 42-48):**
+- Linha 46: `usdFx: 5.69` → `usdFx: 5.22`
 
-- Remover: `tallyUsd: 26`, `clickupUsd: 30`
-- Adicionar BRL: `socialMedia: 1000`, `marcosSimao: 3000`, `gestorProjeto: 4000`
-- Adicionar USD: `serpApiUsd: 250`
-- Manter: `instantlyUsd: 97`
+### 2. `src/components/dashboard/FixedCostsView.tsx` — Novo arquivo
 
-**2. `cogsByPlan` — Atualizar valores (linha 41):**
+- Importar `ASSUMPTIONS`, `brl`, `sumFixedCosts` do engine
+- Importar `Section` e `KpiCard`
+- Calcular subtotais por categoria usando os valores do `ASSUMPTIONS.fixedMonthlyCosts`
+- Converter USD para BRL usando a formula do engine (`usd * usdFx * (1 + iofAndFeesRate)`)
+- Renderizar tres secoes (RH, Ferramentas BRL, Ferramentas USD) com tabelas
+- Mostrar total geral e nota sobre cambio e IOF
+- Receber `activeCustomers` como prop para calcular custo Twilio variavel
 
-- Pro: 290 → 586
-- Enterprise: 780 → 1470
+### 3. `src/components/dashboard/FinancialDashboard.tsx` — Adicionar aba
 
-**3. `sumFixedCosts` — Atualizar formula (linhas 69-78):**
-
-- No calculo de `baseFixed`, substituir `f.tallyUsd + f.clickupUsd + f.instantlyUsd` por `f.serpApiUsd + f.instantlyUsd`
-- Adicionar `f.socialMedia + f.marcosSimao + f.gestorProjeto` na soma dos custos BRL
-
-Nenhuma alteracao nos arquivos de componentes — todas as views ja consomem os dados calculados pelo engine.
-
+- Importar `FixedCostsView`
+- Adicionar entrada no array `TABS`: `{ key: "costs", label: "🏢 Custos Fixos" }`
+- Atualizar tipo `TabKey` (automatico via `typeof TABS`)
+- Renderizar `FixedCostsView` quando `tab === "costs"`, passando `activeCustomers` do cenario atual
