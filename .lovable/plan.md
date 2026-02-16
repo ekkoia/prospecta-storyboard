@@ -1,14 +1,18 @@
 
 
-# Ajustar texto de ARPA para ARPU na Investor View
+# Renomear titulo do painel de resumo na Investor View
 
 ## O que muda
 
-No card "O porquê da margem subir com escala", o item 3 atualmente diz **"Money Models aumentam ARPA"**. Será corrigido para **"Money Models aumentam ARPU"**.
+Trocar o titulo atual **"📌 1 tela / 8 números (o resumo que o investidor quer)"** por algo mais descritivo e direto, como:
 
-## Detalhe Técnico
+**"📊 Resumo Financeiro Mensal"**
+
+Isso reflete melhor o conteudo do card (metricas financeiras do mes) sem referenciar a quantidade de itens (que agora sao 9, nao mais 8).
+
+## Detalhe Tecnico
 
 ### Arquivo: `src/components/dashboard/InvestorView.tsx`
 
-Na seção dos 3 cards explicativos (linha ~82), trocar a string `"3) Money Models aumentam ARPA"` por `"3) Money Models aumentam ARPU"`.
+Alterar a prop `title` do componente `Section` (linha ~44) de `"📌 1 tela / 8 números (o resumo que o investidor quer)"` para `"📊 Resumo Financeiro Mensal"`.
 
