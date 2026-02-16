@@ -1,82 +1,51 @@
 
+# Conectar Burn Rate aos Custos Fixos Editaveis
 
-# Adicionar "Custo Mensal de Operacao" (Burn Rate) na Aba de Aporte
+## Problema
 
-## O que o investidor quer saber
-
-"Quanto custa por mes tocar esse projeto?" -- uma resposta direta com a composicao clara do custo operacional mensal, antes de falar de fases e KPIs.
+O painel de Burn Rate na aba "Aporte & Fases" usa `DEFAULT_FIXED_COSTS` (valores estaticos). Quando voce edita os custos na aba "Custos Fixos", o Burn Rate nao atualiza.
 
 ## Solucao
 
-Adicionar um painel **"Custo Mensal de Operacao"** no topo da secao de fases, mostrando o burn rate mensal detalhado por categoria. Isso responde a pergunta do investidor de forma imediata.
+Passar o estado `editableCosts` do `FinancialDashboard` para o `InvestmentView`, que por sua vez repassa ao `BurnRatePanel`.
 
-## O que sera exibido
+## Alteracoes
 
-### Novo painel: "Quanto custa operar por mes?"
+### 1. `src/components/dashboard/FinancialDashboard.tsx`
 
-Uma caixa destacada mostrando:
+Passar a prop `editableCosts` ao `InvestmentView`:
 
 ```
-Custo Operacional Mensal (burn rate)
-Total: ~R$ 30.000/mes
+// De:
+<InvestmentView projectionRows={projectionRows} />
 
-Composicao:
-  Equipe (RH)           R$ 25.050/mes
-    - Suporte             R$ 1.000
-    - Gestor Automacao    R$ 1.300
-    - Closer (fixo)       R$ 500
-    - Contabilidade       R$ 450
-    - Producao Video      R$ 1.800
-    - Social Media        R$ 1.000
-    - Marcos Simao        R$ 3.000
-    - Gestor Projeto      R$ 4.000
-    - Pro-labore          R$ 12.000
-
-  Ferramentas (BRL)     R$ 1.875/mes
-    - Infra, Lovable, GPT, DB, Dominio
-
-  Ferramentas (USD)     ~R$ 1.956/mes
-    - SerpAPI, Instantly (convertido a R$ 5,22 + IOF)
-
-  Trafego Pago          R$ 3.000-8.000/mes (variavel)
-    - Depende do ritmo de aquisicao do cenario
-
-  COGS (custos variaveis)  Variavel por cliente
-    - Voz, APIs, etc.
+// Para:
+<InvestmentView projectionRows={projectionRows} editableCosts={editableCosts} />
 ```
 
-Abaixo, uma frase clara:
+### 2. `src/components/dashboard/InvestmentView.tsx`
 
-> "Esse e o custo para manter a operacao rodando. Nos primeiros meses, a receita nao cobre esse custo -- por isso o aporte cobre o gap ate a receita escalar."
+- Atualizar a interface de props para aceitar `editableCosts`:
 
-## Alteracoes tecnicas
+```typescript
+export function InvestmentView({ projectionRows, editableCosts }: {
+  projectionRows: MonthResult[];
+  editableCosts: EditableCostsState;
+})
+```
 
-### Arquivo: `src/components/dashboard/InvestmentView.tsx`
+- Na linha 321, trocar `DEFAULT_FIXED_COSTS` por `editableCosts`:
 
-1. **Importar** `DEFAULT_FIXED_COSTS` e `sumFixedCostsFromItems` de `financial-engine.ts`
+```
+// De:
+<BurnRatePanel costs={DEFAULT_FIXED_COSTS} marketingMonth1={marketingMonth1} />
 
-2. **Novo componente `BurnRatePanel`** renderizado antes das fases, que:
-   - Lista os itens de RH com nome e valor (do `DEFAULT_FIXED_COSTS.rhItems`)
-   - Lista ferramentas BRL (do `DEFAULT_FIXED_COSTS.toolsBrlItems`)
-   - Lista ferramentas USD convertidas (do `DEFAULT_FIXED_COSTS.toolsUsdItems` com taxa de cambio)
-   - Mostra o trafego pago estimado do mes 1 (do `projectionRows[0].marketingGross`)
-   - Soma tudo e mostra o total do burn rate
-   - Usa um layout com `Collapsible` (radix) para o detalhamento -- mostra o total sempre, e o detalhe pode ser expandido
+// Para:
+<BurnRatePanel costs={editableCosts} marketingMonth1={marketingMonth1} />
+```
 
-3. **Posicionamento**: Entre os KPI cards de projecao e a secao de fases
+- Remover `DEFAULT_FIXED_COSTS` do import (se nao for usado em outro lugar do arquivo).
 
-### Nenhuma alteracao no motor financeiro
+## Resultado
 
-Os dados ja existem em `DEFAULT_FIXED_COSTS` e nos `MonthResult`. Apenas leitura.
-
-## Resultado esperado
-
-O investidor olha e ve:
-
-- "A operacao custa ~R$ 30k/mes"
-- "Equipe e R$ 25k, ferramentas R$ 4k, trafego R$ 5k"
-- "No mes 1 a receita e R$ 5k, entao o gap e R$ 30k"
-- "Esse gap diminui todo mes conforme entram clientes"
-- "Total da Fase 1 (4 meses de gap): R$ 23k"
-
-Isso responde diretamente "quanto custa tocar" e conecta com o aporte faseado que ja existe.
+Ao editar qualquer custo na aba "Custos Fixos" (RH, ferramentas BRL, ferramentas USD, taxa de cambio), o painel de Burn Rate na aba "Aporte & Fases" atualizara automaticamente com os novos valores.
