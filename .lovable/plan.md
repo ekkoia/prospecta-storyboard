@@ -1,71 +1,106 @@
 
 
-# Redesign Executivo do Dashboard Financeiro
+# Aplicar Design System Crextio ao Dashboard
 
-## Problema Atual
-O dashboard tem aparencia amadora: emojis nos titulos (🍰, 🔥, 👥, 🧠, etc.), cards com gradientes coloridos demais (verde, laranja, roxo, rosa), botoes com gradiente azul/roxo, e layout visual que nao transmite seriedade para um investidor.
+## Resumo
+Migrar todo o dashboard do visual atual (slate escuro, fonte padrao) para o design system Crextio: fonte **Bai Jamjuree**, paleta com amarelo premium como accent, suporte a dark/light mode, cards com sombras customizadas, e layout com sidebar.
 
-## Diretrizes do Novo Visual
+## O que muda
 
-- **Paleta restrita**: tons de slate/zinc para fundo, branco para texto principal, um unico accent azul corporativo (ex: `#2563EB` / blue-600) para destaques e elementos ativos
-- **Zero emojis**: todos os titulos de secao e abas perdem emojis; icones Lucide substituem onde necessario (ex: `Users`, `TrendingUp`, `DollarSign`, `BarChart3`, `Briefcase`)
-- **KPI Cards monocromaticos**: fundo `slate-800` com borda sutil, valor em branco, label em `slate-400`. Sem gradientes coloridos
-- **Tipografia executiva**: titulos em `text-lg font-semibold tracking-tight`, sem bold exagerado
-- **Botoes de controle**: estilo pill com borda, fundo transparente quando inativo, fundo `blue-600` quando ativo. Sem gradiente
-- **Secoes (Section)**: borda `border border-slate-700/50` + `bg-slate-800/50`, cantos arredondados, sem sombra pesada
-- **Tabelas**: linhas zebradas sutis (`slate-800/30`), header com `uppercase text-xs tracking-wider text-slate-500`
-- **Graficos**: tooltips com fundo `slate-900`, cores de dados reduzidas a 3-4 tons de azul/cinza/verde sutil
+### 1. Fonte e index.html
+- Adicionar link do Google Fonts (Bai Jamjuree) no `<head>` do `index.html`
+- Configurar `fontFamily.sans` no `tailwind.config.ts`
 
-## Arquivos Modificados
+### 2. Variaveis CSS (index.css)
+- Substituir todas as variaveis `:root` e `.dark` pelos novos tokens (amarelo premium como primary, fundos claros no light mode, fundos escuros no dark)
+- Adicionar tokens customizados: `--success-bg/text/border`, `--destructive-bg/border`, `--shadow-card/hover/button`, `--crextio-*`
+- Adicionar utilitarios globais (font-smoothing, letter-spacing em headings, `.glass-effect`)
 
-### 1. `src/components/dashboard/KpiCard.tsx`
-- Remover sistema de `tone` com gradientes coloridos
-- Novo visual: `bg-slate-800 border border-slate-700/50 rounded-xl p-5`
-- Valor em `text-2xl font-semibold text-white`, label em `text-xs uppercase tracking-wider text-slate-500`
-- Icone opcional via Lucide (prop `icon`) em `text-blue-500` ao lado do titulo
+### 3. tailwind.config.ts
+- Adicionar `fontFamily: { sans: ['Bai Jamjuree', 'system-ui', 'sans-serif'] }`
+- Adicionar cores customizadas para os tokens crextio e status (success, etc.)
+- Atualizar `--radius` para `1rem`
 
-### 2. `src/components/dashboard/Section.tsx`
-- Trocar `bg-slate-800 rounded-xl p-6 shadow-xl` por `bg-slate-800/50 border border-slate-700/50 rounded-xl p-6`
-- Titulo: `text-lg font-semibold text-slate-100 tracking-tight`
+### 4. Dark Mode Toggle
+- O dashboard atualmente e sempre escuro (classes hardcoded como `bg-slate-900`, `text-white`). Sera necessario migrar para usar as variaveis CSS (`bg-background`, `text-foreground`, `bg-card`, etc.) em vez de cores hardcoded
+- Adicionar um botao de toggle dark/light no header usando `next-themes` (ja instalado)
 
-### 3. `src/components/dashboard/FinancialDashboard.tsx`
-- **Header**: subtitulo mais curto, sem "Financial Storyboard" -- usar "Painel Financeiro" ou "Dashboard Financeiro"
-- **Abas**: remover todos os emojis dos labels. Usar texto limpo: "Investor View", "Aquisicao", "Monetizacao", "Custo Unitario", "DRE", "Custos Fixos", "Aporte & Fases"
-- **Botoes**: substituir `bg-gradient-to-r from-blue-600 to-purple-600` por `bg-blue-600 text-white` (ativo) e `bg-transparent border border-slate-600 text-slate-300` (inativo)
-- **Paineis de controle**: bordas mais suaves, sem `shadow-xl`
+### 5. Componentes do Dashboard — Migracao de cores
 
-### 4. `src/components/dashboard/InvestorView.tsx`
-- Remover emojis de todos os titulos de Section: "Resumo Financeiro Mensal", "Distribuicao de clientes por plano", "Comparacao (100 vs 200 vs 500)", "Por que a margem sobe com escala"
-- Remover emoji de alerta amarelo (⚠) -- usar icone `AlertTriangle` do Lucide
-- Cards de explicacao ("Fixos diluem", etc.): fundo `slate-800/60 border border-slate-700/40`
+**KpiCard.tsx**
+- `bg-slate-800` --> `bg-card border-border` com `shadow-card`
+- `text-white` --> `text-foreground`
+- `text-slate-500` --> `text-muted-foreground`
+- Icone: `text-muted-foreground` com hover `text-foreground`
+- `rounded-xl` --> `rounded-2xl`
 
-### 5. `src/components/dashboard/AcquisitionView.tsx`
-- Remover emojis: "Evolucao de Clientes", "Marketing -- Mensal vs Acumulado", "CAC por Cliente", "Simulador de Orcamento de Trafego Pago"
-- Remover emoji ℹ️ da nota explicativa
-- Simulador: visual mais contido, sem `text-amber-400` em destaque
+**Section.tsx**
+- `bg-slate-800/50 border-slate-700/50` --> `bg-card border-border`
+- Titulo: `text-foreground`
 
-### 6. `src/components/dashboard/MonetizationView.tsx`
-- Remover emojis: "Receita total vs Assinaturas", "Mini-mapa Hormozi", "Receita por componente"
-- Manter o conteudo, apenas limpar visual
+**FinancialDashboard.tsx**
+- Fundo: `bg-gradient-to-br from-slate-900...` --> `min-h-screen bg-background`
+- Botoes ativos: `bg-blue-600` --> `bg-primary text-primary-foreground` (amarelo com texto preto)
+- Botoes inativos: `border-slate-600 text-slate-300` --> `border-input text-muted-foreground`
+- Header: `text-white` --> `text-foreground`, subtitulo `text-muted-foreground`
 
-### 7. `src/components/dashboard/DreView.tsx`
-- Remover emojis de titulos: "DRE (detalhada)", "Evolucao -- Receita vs Lucro", "Projecao 12 meses"
-- Resultado final (lucro liquido): borda `border-blue-600/50` mais sutil, sem gradiente `from-blue-900 to-purple-900`
+**InvestorView.tsx**
+- Todas as classes `bg-slate-800/60`, `text-slate-400`, `text-white`, `border-slate-700` --> tokens CSS
+- Tooltips dos graficos: `backgroundColor: "#0f172a"` --> `hsl(var(--card))`
+- Cores dos graficos: manter tons de azul mas adaptar strokes/grids para variavel
 
-### 8. `src/components/dashboard/FixedCostsView.tsx`
-- Remover emojis: "Recursos Humanos", "Ferramentas & Infra (BRL)", "SaaS (USD)", "Parametros de Cambio", "Custo Variavel -- Numeros Twilio"
-- Usar icones Lucide: `Users`, `Wrench`, `Globe`, `ArrowLeftRight`, `Phone`
+**AcquisitionView.tsx**
+- Mesma migracao de cores hardcoded para tokens
+- Slider: ja usa componente shadcn, vai herdar automaticamente
+- Cards do simulador: `bg-slate-800/60` --> `bg-card/60 border-border`
 
-### 9. `src/components/dashboard/UnitCostView.tsx`
-- Remover emojis de titulos
+**MonetizationView.tsx**
+- Alert: migrar cores inline para tokens
+- Tooltips customizados: `bg-slate-900` --> `bg-popover border-border`
 
-### 10. `src/components/dashboard/InvestmentView.tsx`
-- Remover emojis de todos os titulos e fases (🏗️, 🚀, 📈)
-- Fases: substituir gradientes coloridos por cards com borda colorida sutil (ex: `border-l-4 border-amber-500 bg-slate-800`)
-- Remover emoji ✅ -- usar icone `CheckCircle`
-- Burn Rate: remover emoji 🔥 -- usar icone `Flame` do Lucide
+**DreView.tsx**
+- Tabela: zebra `bg-slate-800/30` --> `bg-muted/30`
+- Destaque lucro liquido: `border-blue-600/50` --> `border-primary/50`
+- Todas as cores de texto inline
 
-## Resultado Esperado
+**FixedCostsView.tsx**
+- Inputs editaveis: `bg-slate-700 border-blue-500` --> `bg-input border-primary`
+- Botoes add/delete: `text-blue-400` --> `text-primary`
+- Todas as tabelas e labels
 
-Dashboard com aparencia de ferramenta financeira profissional -- como um Bloomberg Terminal ou Carta -- clean, monocromatico, com accent azul unico, zero emojis, tipografia precisa. Transmite confianca e seriedade para apresentacao a investidor.
+**UnitCostView.tsx**
+- Mesma migracao de cores
+
+**InvestmentView.tsx**
+- Cards de fase: `bg-slate-800 border-slate-700` --> `bg-card border-border`
+- BurnRatePanel: mesma migracao
+- Tooltip customizado: usar tokens
+- Track Record cards: mesma migracao
+
+### 6. Layout com Sidebar (opcional)
+O design system menciona sidebar, mas o dashboard atual usa abas. Vou manter as abas como estao e nao adicionar sidebar, ja que a estrutura atual funciona bem para o caso de uso. Se quiser sidebar depois, podemos adicionar.
+
+## Arquivos modificados
+1. `index.html` — link Google Fonts
+2. `src/index.css` — tokens CSS completos (light + dark)
+3. `tailwind.config.ts` — font family + cores extras
+4. `src/App.tsx` — wrapper ThemeProvider para dark mode
+5. `src/components/dashboard/FinancialDashboard.tsx` — cores + toggle dark/light
+6. `src/components/dashboard/KpiCard.tsx` — tokens CSS
+7. `src/components/dashboard/Section.tsx` — tokens CSS
+8. `src/components/dashboard/InvestorView.tsx` — tokens CSS
+9. `src/components/dashboard/AcquisitionView.tsx` — tokens CSS
+10. `src/components/dashboard/MonetizationView.tsx` — tokens CSS
+11. `src/components/dashboard/DreView.tsx` — tokens CSS
+12. `src/components/dashboard/FixedCostsView.tsx` — tokens CSS
+13. `src/components/dashboard/UnitCostView.tsx` — tokens CSS
+14. `src/components/dashboard/InvestmentView.tsx` — tokens CSS
+
+## Detalhes tecnicos
+
+A migracao principal e substituir ~200 ocorrencias de cores hardcoded (ex: `bg-slate-800`, `text-white`, `text-slate-400`, `border-slate-700`) pelas classes que usam variaveis CSS (`bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`). Isso garante que o dark/light mode funcione automaticamente.
+
+Os graficos (Recharts) usam cores inline em props como `stroke`, `fill`, `contentStyle`. Esses serao adaptados para funcionar em ambos os modos, usando cores que contrastem bem em light e dark.
+
+O toggle de tema sera um botao simples no header (icone Sol/Lua) usando o `next-themes` que ja esta instalado.
 
