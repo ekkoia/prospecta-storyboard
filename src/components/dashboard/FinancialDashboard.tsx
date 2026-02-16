@@ -9,13 +9,13 @@ import { FixedCostsView } from "./FixedCostsView";
 import { InvestmentView } from "./InvestmentView";
 
 const TABS = [
-  { key: "investor", label: "👔 Investor View" },
-  { key: "acquisition", label: "🎯 Aquisição" },
-  { key: "monetization", label: "💎 Monetização (Hormozi)" },
-  { key: "unit", label: "🧾 Custo por Cliente" },
-  { key: "dre", label: "📑 DRE" },
-  { key: "costs", label: "🏢 Custos Fixos" },
-  { key: "investment", label: "💰 Aporte & Fases" },
+  { key: "investor", label: "Investor View" },
+  { key: "acquisition", label: "Aquisição" },
+  { key: "monetization", label: "Monetização" },
+  { key: "unit", label: "Custo Unitário" },
+  { key: "dre", label: "DRE" },
+  { key: "costs", label: "Custos Fixos" },
+  { key: "investment", label: "Aporte & Fases" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -68,22 +68,22 @@ export default function FinancialDashboard() {
   const { newSchedule, avgNewPerMonth } = projection;
 
   const btnClass = (active: boolean) =>
-    `px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-      active ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" : "bg-slate-700 text-slate-200 hover:bg-slate-600"
+    `px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+      active ? "bg-blue-600 text-white" : "bg-transparent border border-slate-600 text-slate-300 hover:border-slate-500 hover:text-white"
     }`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-4xl font-bold text-white mb-2">Prospecta IA 360 — Financial Storyboard</h1>
-          <p className="text-slate-400">Dashboard reestruturado para contar uma história clara para sócio/investidor.</p>
+          <h1 className="text-3xl font-semibold text-white tracking-tight mb-1">Prospecta IA 360</h1>
+          <p className="text-slate-500 text-sm">Dashboard Financeiro</p>
         </div>
 
         {/* Controls */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="bg-slate-800 rounded-xl p-4 shadow-xl">
-            <div className="text-slate-300 text-sm font-semibold mb-2">Modo</div>
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+            <div className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-2">Modo</div>
             <div className="flex flex-wrap gap-2">
               {([
                 { k: "moderate" as ModeKey, t: "Moderado" },
@@ -93,23 +93,23 @@ export default function FinancialDashboard() {
                 <button key={m.k} onClick={() => setMode(m.k)} className={btnClass(mode === m.k)}>{m.t}</button>
               ))}
             </div>
-            <div className="mt-3 text-xs text-slate-400 leading-relaxed">
-              <span className="text-slate-200 font-semibold">Nota:</span> "Marketing líquido do mês" = Marketing bruto − receita do teste pago.
+            <div className="mt-3 text-xs text-slate-500 leading-relaxed">
+              <span className="text-slate-400 font-medium">Nota:</span> "Marketing líquido do mês" = Marketing bruto − receita do teste pago.
             </div>
           </div>
 
-          <div className="bg-slate-800 rounded-xl p-4 shadow-xl">
-            <div className="text-slate-300 text-sm font-semibold mb-2">Cenário (DRE estático)</div>
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+            <div className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-2">Cenário (DRE estático)</div>
             <div className="flex gap-2">
               {(["100", "200", "500"] as ScenarioKey[]).map((s) => (
                 <button key={s} onClick={() => setScenario(s)} className={`flex-1 ${btnClass(scenario === s)}`}>{s}</button>
               ))}
             </div>
-            <div className="mt-3 text-xs text-slate-400">Snapshot assume novos clientes ≈ churn do mês (reposições).</div>
+            <div className="mt-3 text-xs text-slate-500">Snapshot assume novos clientes ≈ churn do mês (reposições).</div>
           </div>
 
-          <div className="bg-slate-800 rounded-xl p-4 shadow-xl">
-            <div className="text-slate-300 text-sm font-semibold mb-2">Abas</div>
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+            <div className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-2">Abas</div>
             <div className="flex flex-wrap gap-2">
               {TABS.map((t) => (
                 <button key={t.key} onClick={() => setTab(t.key)} className={btnClass(tab === t.key)}>{t.label}</button>
@@ -133,7 +133,7 @@ export default function FinancialDashboard() {
         )}
         {tab === "investment" && <InvestmentView projectionRows={projectionRows} editableCosts={editableCosts} />}
 
-        <div className="mt-8 text-xs text-slate-500">
+        <div className="mt-8 text-xs text-slate-600">
           Ajustes recomendados: substituir COGS por plano por custos reais, calibrar CAC por plano com dados por canal, e validar impostos efetivos com contador.
         </div>
       </div>
