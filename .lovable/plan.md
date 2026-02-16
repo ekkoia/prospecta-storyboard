@@ -1,97 +1,94 @@
 
-# Aba de Custos Fixos Interativa — Editar, Adicionar e Excluir
+# Integrar Custos Reais de Voz (VAPI + Twilio) ao Motor Financeiro
 
-## Resumo
+## Dados Informados
 
-Transformar a aba "Custos Fixos" em uma interface totalmente interativa onde o usuario pode **editar valores**, **adicionar novos itens** e **excluir itens existentes** em cada categoria (RH, Ferramentas BRL, Ferramentas USD). Todas as alteracoes propagam automaticamente para as demais abas do dashboard.
+**Custo real por minuto de chamada: $0.175/min**
+- VAPI Platform: $0.055/min
+- TTS (Text-to-Speech): $0.027/min
+- LLM: $0.027/min
+- STT (Speech-to-Text): $0.009/min
+- Twilio outbound: $0.066/min
+- Twilio Phone Number: $4.25/mes (ja modelado)
 
-## Arquitetura da Solucao
+**Minutos inclusos nos planos:**
+- Lite: 0 (sem voz)
+- Starter: 0 (sem voz)
+- Pro: 150 min/mes
+- Enterprise: 350 min/mes
 
-O problema principal e que `ASSUMPTIONS` e `as const` (imutavel). A solucao e mover os custos fixos para um **estado React** no `FinancialDashboard`, e fazer o engine aceitar esses custos como parametro em vez de ler direto do `ASSUMPTIONS`.
+**Packs de voz (venda avulsa):**
 
-### Modelo de dados dos itens editaveis
+| Pack | Preco | Min inclusos | Custo real (COGS) | Margem |
+|------|-------|-------------|-------------------|--------|
+| R$ 250 | 100 min | ~R$ 99 | 60% |
+| R$ 650 | 300 min | ~R$ 296 | 54% |
+| R$ 1.100 | 600 min | ~R$ 592 | 46% |
+| R$ 1.700 | 1.000 min | ~R$ 986 | 42% |
+| R$ 2.900 | 2.000 min | ~R$ 1.972 | 32% |
 
-Cada categoria tera uma lista dinamica de itens:
+(COGS calculado a R$ 5,22 + 8% IOF = R$ 0,986/min)
 
-```text
-CostItem = { id: string, label: string, value: number }       // BRL
-UsdCostItem = { id: string, label: string, usd: number }      // USD
-```
+## O que muda no modelo
 
-O estado no Dashboard sera:
+### 1. Adicionar COGS de voz aos planos Pro e Enterprise
 
-```text
-{
-  rhItems: CostItem[],
-  toolsBrlItems: CostItem[],
-  toolsUsdItems: UsdCostItem[],
-  usdFx: number,
-  iofAndFeesRate: number,
-  twilioNumberUsdPerCustomer: number,
-  twilioNumberShareOfCustomers: number
-}
-```
+Os minutos inclusos nos planos geram custo variavel que precisa ser somado ao `cogsByPlan`:
 
-## Funcionalidades da Interface
+- **Pro**: 150 min x R$ 0,986 = **+R$ 148/mes** por cliente Pro
+  - cogsByPlan.pro: 586 -> **734**
+- **Enterprise**: 350 min x R$ 0,986 = **+R$ 345/mes** por cliente Enterprise
+  - cogsByPlan.enterprise: 1470 -> **1.815**
 
-### Editar
-- Clicar no valor abre um input numerico inline
-- Enter ou blur confirma a edicao
-- Valores alterados ficam destacados com borda azul
+### 2. Corrigir COGS dos voice packs
 
-### Adicionar
-- Botao "+ Adicionar" no rodape de cada tabela de categoria
-- Abre uma linha com dois campos: nome do item e valor
-- Enter ou botao de confirmar salva o novo item
+O modelo atual usa `cogsRateOfVoiceRevenue: 0.32` (32%), mas os dados reais mostram que a taxa de COGS varia de 32% a 60% dependendo do pack.
 
-### Excluir
-- Icone de lixeira (X) ao lado de cada item
-- Confirmacao visual antes de remover (hover vermelho)
-- Item removido desaparece e totais recalculam
+Usando uma media ponderada razoavel (assumindo que packs menores vendem mais), o COGS medio fica em torno de **50%** em vez de 32%.
 
-### Resetar
-- Botao "Resetar valores originais" restaura todos os itens ao estado padrao do engine
+- `voicePacks.cogsRateOfVoiceRevenue`: 0.32 -> **0.50**
 
-## Propagacao ao Dashboard
+### 3. Adicionar constante de custo por minuto ao engine
 
-Quando qualquer item e editado/adicionado/excluido:
-1. O estado `editableCosts` atualiza no `FinancialDashboard`
-2. Uma funcao `overrideFixedCosts()` calcula o novo total fixo a partir dos itens do estado
-3. Os `useMemo` de `staticScenarios` e `projection` dependem desse estado, forcando recalculo
-4. Todas as abas (Investor, DRE, Custo por Cliente, etc.) refletem os novos valores
+Para referencia e uso futuro, registrar:
+- `voiceCostPerMinuteUsd: 0.175` no ASSUMPTIONS
 
 ## Detalhes Tecnicos
 
-### 1. `src/lib/financial-engine.ts` — Exportar defaults e aceitar override
+### `src/lib/financial-engine.ts`
 
-- Exportar `DEFAULT_FIXED_COSTS` com os valores originais do `fixedMonthlyCosts`
-- Remover `as const` do `ASSUMPTIONS` para permitir tipagem flexivel
-- Criar funcao `sumFixedCostsFromItems(rhItems, toolsBrlItems, toolsUsdItems, params, activeCustomers)` que calcula o total a partir de listas dinamicas em vez de ler `ASSUMPTIONS.fixedMonthlyCosts`
-- Adicionar parametro opcional `fixedCostOverride?: number` a `monthModel` e `build12MonthProjection` para substituir o calculo interno de custos fixos
-
-### 2. `src/components/dashboard/FixedCostsView.tsx` — Reescrever com CRUD
-
-- Receber como props: `rhItems`, `toolsBrlItems`, `toolsUsdItems`, parametros de cambio/Twilio, e callbacks `onUpdate`, `onReset`
-- Componente `EditableCell`: input inline para edicao de valores
-- Componente `AddItemRow`: linha com inputs de nome + valor para adicionar novo item
-- Botao de excluir (icone X) em cada linha
-- Parametros editaveis: cambio, IOF, custo Twilio, penetracao Twilio
-- Botao "Resetar valores originais"
-
-### 3. `src/components/dashboard/FinancialDashboard.tsx` — Estado centralizado
-
-- Criar estado `editableCosts` com `useState` inicializado a partir dos defaults
-- Funcao `calcFixedTotal()` que soma todos os itens do estado + conversao USD + Twilio
-- Passar `fixedCostOverride` para `monthModel` e `build12MonthProjection`
-- Passar items e callbacks para `FixedCostsView`
-- Incluir `editableCosts` nas dependencias dos `useMemo`
-
-### Fluxo completo
+1. Adicionar campo `voiceCostPerMinuteUsd: 0.175` e `includedVoiceMinutes` por plano ao `ASSUMPTIONS`:
 
 ```text
-Usuario edita/adiciona/exclui item na aba Custos
-  -> Callback atualiza estado editableCosts no Dashboard
-  -> useMemo recalcula calcFixedTotal()
-  -> monthModel e build12MonthProjection recebem novo fixedCostOverride
-  -> Todas as abas re-renderizam com novos valores
+plans: {
+  lite:       { ..., includedVoiceMinutes: 0 },
+  starter:    { ..., includedVoiceMinutes: 0 },
+  pro:        { ..., includedVoiceMinutes: 150 },
+  enterprise: { ..., includedVoiceMinutes: 350 },
+}
 ```
+
+2. Atualizar `cogsByPlan` para incluir o custo dos minutos:
+   - pro: 586 + 148 = 734
+   - enterprise: 1470 + 345 = 1815
+
+3. Atualizar `voicePacks.cogsRateOfVoiceRevenue` de 0.32 para 0.50
+
+4. Adicionar array de packs de voz para referencia na aba de monetizacao:
+
+```text
+voicePackOptions: [
+  { price: 250, minutes: 100 },
+  { price: 650, minutes: 300 },
+  { price: 1100, minutes: 600 },
+  { price: 1700, minutes: 1000 },
+  { price: 2900, minutes: 2000 },
+]
+```
+
+### Impacto nas abas
+
+- **Investor View / DRE**: COGS total aumenta (Pro e Enterprise ficam mais caros), reduzindo margem
+- **Custo por Cliente**: `cogsPerActive` sobe para refletir os minutos inclusos
+- **Monetizacao (Hormozi)**: Voice packs com COGS corrigido mostra margem real dos packs
+- **Custos Fixos**: Sem alteracao (custos de voz sao variaveis, nao fixos)
