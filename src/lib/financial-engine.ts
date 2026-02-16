@@ -75,12 +75,20 @@ export function sumFixedCostsFromItems(costs: EditableCostsState, activeCustomer
 }
 
 export const ASSUMPTIONS = {
+  voiceCostPerMinuteUsd: 0.175,
+  voicePackOptions: [
+    { price: 250, minutes: 100 },
+    { price: 650, minutes: 300 },
+    { price: 1100, minutes: 600 },
+    { price: 1700, minutes: 1000 },
+    { price: 2900, minutes: 2000 },
+  ],
   plans: {
-    lite: { label: "Lite", price: 397, includedSearches: 1000, includedWhatsApps: 1 },
-    starter: { label: "Starter", price: 897, includedSearches: 1500, includedWhatsApps: 1 },
-    pro: { label: "Pro", price: 1497, includedSearches: 5000, includedWhatsApps: 2 },
-    enterprise: { label: "Enterprise", price: 2997, includedSearches: 18000, includedWhatsApps: 4 },
-  } as Record<PlanKey, { label: string; price: number; includedSearches: number; includedWhatsApps: number }>,
+    lite: { label: "Lite", price: 397, includedSearches: 1000, includedWhatsApps: 1, includedVoiceMinutes: 0 },
+    starter: { label: "Starter", price: 897, includedSearches: 1500, includedWhatsApps: 1, includedVoiceMinutes: 0 },
+    pro: { label: "Pro", price: 1497, includedSearches: 5000, includedWhatsApps: 2, includedVoiceMinutes: 150 },
+    enterprise: { label: "Enterprise", price: 2997, includedSearches: 18000, includedWhatsApps: 4, includedVoiceMinutes: 350 },
+  } as Record<PlanKey, { label: string; price: number; includedSearches: number; includedWhatsApps: number; includedVoiceMinutes: number }>,
   mix: { lite: 0.45, starter: 0.35, pro: 0.15, enterprise: 0.05 } as Record<PlanKey, number>,
   churnMonthlyBase: 0.035,
   churnMonthlyPessimistic: 0.06,
@@ -96,9 +104,9 @@ export const ASSUMPTIONS = {
     enabled: true,
     attachRateOfActiveCustomers: 0.08,
     avgRevenuePerBuyer: 980,
-    cogsRateOfVoiceRevenue: 0.32,
+    cogsRateOfVoiceRevenue: 0.50,
   },
-  cogsByPlan: { lite: 95, starter: 140, pro: 586, enterprise: 1470 } as Record<PlanKey, number>,
+  cogsByPlan: { lite: 95, starter: 140, pro: 734, enterprise: 1815 } as Record<PlanKey, number>,
   fixedMonthlyCosts: {
     support: 1000, automationManager: 1300, closerFixed: 500, accounting: 450,
     videoProduction: 1800, infra: 245, lovable: 1000, gptClaude: 300, db: 180, domain: 150,
