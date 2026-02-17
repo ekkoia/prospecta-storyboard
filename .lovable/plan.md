@@ -1,56 +1,58 @@
 
 
-# Ajustes no Grafico de Pizza Mobile
+# Corrigir Label "Enterprise" Cortado e Contorno nas Fatias
 
 ## Problemas
 
-1. **Grafico pequeno demais** -- `outerRadius` de 80 e `fontSize` de 9 deixam o grafico e os labels muito pequenos no mobile.
-2. **Quadrado ao redor da fatia ao clicar** -- O Recharts aplica um `stroke` branco nas fatias do `<Pie>` por padrao, e ao interagir aparece um contorno retangular (cursor/outline). Precisa remover o `activeShape` e o cursor do Tooltip.
+1. **Label "Enterprise: 5%" cortado** -- Na imagem, aparece apenas "Enterprise:" sem o "5%". O texto esta sendo renderizado em uma unica linha `<text>` SVG que ultrapassa a borda direita do container. Precisa quebrar em duas linhas no mobile.
+
+2. **Contorno retangular ao interagir** -- Apesar de `activeIndex={-1}` e `stroke="none"` terem sido adicionados, o Recharts pode ainda aplicar um outline/stroke via CSS nos setores SVG. Precisa adicionar estilos CSS para garantir `outline: none` nos elementos `.recharts-sector`.
 
 ## Solucao
 
 ### Arquivo: `src/components/dashboard/InvestorView.tsx`
 
-**1. Aumentar o grafico no mobile:**
-- `outerRadius`: de 80 para 100
-- `fontSize`: de 9 para 10
+**1. Labels em duas linhas no mobile:**
 
-**2. Remover o quadrado/contorno ao clicar na fatia:**
-- Adicionar `activeShape={undefined}` (ou `activeIndex={-1}`) no `<Pie>` para desabilitar o efeito de destaque da fatia ativa
-- Adicionar `cursor={false}` no `<Tooltip>` para remover o cursor retangular que aparece ao interagir
-- Adicionar `stroke="none"` nas `<Cell>` para remover o contorno branco das fatias
-
-### Codigo resultante (trecho relevante):
+Trocar o `<text>` simples por um `<text>` com dois `<tspan>` quando em mobile -- primeiro tspan com o nome do plano, segundo tspan (abaixo, com `dy="1.2em"`) com a porcentagem:
 
 ```tsx
-<Pie data={distribution} cx="50%" cy="55%" labelLine={false}
-  activeIndex={-1}
-  label={({ name, percent, x, y, textAnchor, fill }: any) => {
-    const displayName = isMobile ? name.split(' (')[0] : name;
+label={({ name, percent, x, y, textAnchor, fill }: any) => {
+  const displayName = isMobile ? name.split(' (')[0] : name;
+  const percentage = `${(percent * 100).toFixed(0)}%`;
+  if (isMobile) {
     return (
-      <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 10 : 11}>
-        {`${displayName}: ${(percent * 100).toFixed(0)}%`}
+      <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={10}>
+        <tspan x={x} dy="0">{displayName}:</tspan>
+        <tspan x={x} dy="1.2em">{percentage}</tspan>
       </text>
     );
-  }}
-  outerRadius={isMobile ? 100 : 110} dataKey="value">
-  {distribution.map((entry, idx) => (
-    <Cell key={idx} fill={entry.color} stroke="none" />
-  ))}
-</Pie>
-<Tooltip
-  cursor={false}
-  formatter={(v: any) => `${v} clientes`}
-  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-  itemStyle={{ color: "hsl(var(--foreground))" }}
-  labelStyle={{ color: "hsl(var(--foreground))" }}
-/>
+  }
+  return (
+    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={11}>
+      {`${displayName}: ${percentage}`}
+    </text>
+  );
+}}
 ```
 
-## Resumo
+Isso garante que labels longos como "Enterprise" quebrem a porcentagem para a linha de baixo.
 
-- Um unico arquivo modificado
-- Grafico maior e mais legivel no mobile (outerRadius 100, fontSize 10)
-- Quadrado/contorno removido ao interagir com fatias (activeIndex={-1}, cursor={false}, stroke="none")
-- Tooltip continua funcionando normalmente mostrando os dados
+**2. Remover outline/contorno CSS dos setores:**
+
+Adicionar estilo inline no `<PieChart>` via className ou style para forcar `outline: none` e `stroke: none` nos setores Recharts. A abordagem mais direta e adicionar `style` no `<PieChart>`:
+
+```tsx
+<PieChart style={{ outline: 'none' }}>
+```
+
+E tambem garantir que o `<Pie>` tenha `activeShape` desabilitado explicitamente com uma funcao vazia ou `undefined`.
+
+### Resumo tecnico
+
+- Um unico arquivo: `src/components/dashboard/InvestorView.tsx`
+- Labels mobile quebram em duas linhas usando `<tspan>` SVG
+- Desktop mantem formato em linha unica
+- Outline CSS removido via style no PieChart
+- `stroke="none"` ja esta nas `<Cell>`, manter
 
