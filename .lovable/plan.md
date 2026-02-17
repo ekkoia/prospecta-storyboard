@@ -1,68 +1,51 @@
 
 
-# Ajustes de Responsividade Mobile
+# Corrigir Labels do Pie Chart Cortados em Mobile
 
-## Problemas Identificados
-
-1. **Grafico de pizza (Investor View)**: Os labels longos como "Enterprise (R$4497): 5%" e "Starter (R$997): 35%" estao sendo cortados nas laterais em telas pequenas (390px). O outerRadius de 110px combinado com labels longos transborda o container.
-
-2. **Grids de KPI cards**: Varias abas usam `md:grid-cols-4` ou `md:grid-cols-5`, pulando direto de 1 coluna para 4-5 sem um passo intermediario. Em telas medias isso pode ficar apertado.
-
-3. **Padding geral**: O container principal usa `p-6` que ocupa muito espaco em mobile.
+## Problema
+No mobile (390px), os labels do grafico de pizza estao sendo cortados nas bordas. Textos como "Enterprise (R$4497): 5%" e "Starter (R$897): 35%" sao longos demais para o espaco disponivel, mesmo com outerRadius reduzido para 80 e fontSize 9.
 
 ## Solucao
 
-### 1. InvestorView.tsx — Pie Chart responsivo
+### Arquivo: `src/components/dashboard/InvestorView.tsx`
 
-- Reduzir o `outerRadius` para 80px em mobile e manter 110px em desktop usando um estado que verifica a largura
-- Alternativa mais simples: reduzir o `fontSize` dos labels para 9px e o `outerRadius` para 90px, aumentando a `height` do container para 380px para dar mais espaco vertical aos labels
-- Usar `labelLine={false}` ja esta correto
+Encurtar os labels em mobile, mostrando apenas a abreviacao do plano sem o preco. O preco ja aparece no tooltip ao tocar.
 
-Abordagem escolhida: reduzir `outerRadius` para 90, `fontSize` para 9 em mobile. Adicionar uma verificacao com `useIsMobile()` hook que ja existe no projeto para ajustar dinamicamente.
+**Mobile**: mostrar apenas "Lite: 45%" em vez de "Lite (R$397): 45%"
+**Desktop**: manter o formato completo "Lite (R$397): 45%"
 
-Em mobile:
-- `outerRadius`: 80
-- `fontSize`: 9
-- `height`: 350 (mais espaco vertical)
+Mudancas:
 
-Em desktop:
-- Manter valores atuais (outerRadius 110, fontSize 11, height 320)
+1. No `useMemo` de `distribution`, adicionar um campo `shortName` com apenas o label do plano (sem preco):
 
-### 2. InvestorView.tsx — KPI grid
+```tsx
+return (Object.keys(activeCounts) as PlanKey[]).map((k) => ({
+  name: `${ASSUMPTIONS.plans[k].label} (R$${ASSUMPTIONS.plans[k].price})`,
+  shortName: ASSUMPTIONS.plans[k].label,
+  value: activeCounts[k],
+  color: colors[k],
+}));
+```
 
-- Mudar `md:grid-cols-4` para `grid-cols-2 md:grid-cols-4` nos KPI cards para ter 2 colunas em mobile
+2. No render function do `label`, usar `shortName` em mobile e `name` em desktop. Como o Recharts passa as propriedades do data item no callback, podemos acessar diretamente:
 
-### 3. AcquisitionView.tsx — KPI grid
+```tsx
+label={({ name, percent, x, y, textAnchor, fill }: any) => {
+  const displayName = isMobile ? name.split(' (')[0] : name;
+  return (
+    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 9 : 11}>
+      {`${displayName}: ${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+}}
+```
 
-- Mudar `md:grid-cols-3 lg:grid-cols-4` para `grid-cols-2 md:grid-cols-3 lg:grid-cols-4`
+Isso resolve o corte sem perder informacao (o preco continua visivel no tooltip).
 
-### 4. DreView.tsx — KPI grid
+## Resumo
 
-- Mudar `md:grid-cols-5` para `grid-cols-2 md:grid-cols-3 lg:grid-cols-5`
-
-### 5. MonetizationView.tsx — KPI grid
-
-- Mudar `md:grid-cols-5` para `grid-cols-2 md:grid-cols-3 lg:grid-cols-5`
-
-### 6. UnitCostView.tsx — KPI grid
-
-- Mudar `md:grid-cols-5` para `grid-cols-2 md:grid-cols-3 lg:grid-cols-5`
-
-### 7. FixedCostsView.tsx — KPI grid
-
-- Mudar `md:grid-cols-4` para `grid-cols-2 md:grid-cols-4`
-
-### 8. FinancialDashboard.tsx — Padding
-
-- Mudar `p-6` para `p-3 md:p-6` no container principal para reduzir padding em mobile
-
-## Arquivos Modificados
-
-- `src/components/dashboard/InvestorView.tsx`
-- `src/components/dashboard/AcquisitionView.tsx`
-- `src/components/dashboard/DreView.tsx`
-- `src/components/dashboard/MonetizationView.tsx`
-- `src/components/dashboard/UnitCostView.tsx`
-- `src/components/dashboard/FixedCostsView.tsx`
-- `src/components/dashboard/FinancialDashboard.tsx`
+- Um unico arquivo modificado: `InvestorView.tsx`
+- Labels mobile ficam curtos ("Lite: 45%") para nao cortar
+- Labels desktop mantidos completos ("Lite (R$397): 45%")
+- Preco continua acessivel via tooltip
 
