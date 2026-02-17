@@ -77,18 +77,19 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
           <ResponsiveContainer width="100%" height={isMobile ? 350 : 320}>
             <PieChart>
               <Pie data={distribution} cx="50%" cy="55%" labelLine={false}
- label={({ name, percent, x, y, textAnchor, fill }: any) => {
+                activeIndex={-1}
+                label={({ name, percent, x, y, textAnchor, fill }: any) => {
                   const displayName = isMobile ? name.split(' (')[0] : name;
                   return (
-                    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 9 : 11}>
+                    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 10 : 11}>
                       {`${displayName}: ${(percent * 100).toFixed(0)}%`}
                     </text>
                   );
                 }}
-                outerRadius={isMobile ? 80 : 110} dataKey="value">
-                {distribution.map((entry, idx) => (<Cell key={idx} fill={entry.color} />))}
+                outerRadius={isMobile ? 100 : 110} dataKey="value">
+                {distribution.map((entry, idx) => (<Cell key={idx} fill={entry.color} stroke="none" />))}
               </Pie>
-              <Tooltip formatter={(v: any) => `${v} clientes`} contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }} />
+              <Tooltip cursor={false} formatter={(v: any) => `${v} clientes`} contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }} />
             </PieChart>
           </ResponsiveContainer>
         </Section>
