@@ -7,6 +7,7 @@ import { UnitCostView } from "./UnitCostView";
 import { DreView } from "./DreView";
 import { FixedCostsView } from "./FixedCostsView";
 import { InvestmentView } from "./InvestmentView";
+import { ChurnView } from "./ChurnView";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -18,6 +19,7 @@ const TABS = [
   { key: "dre", label: "DRE" },
   { key: "costs", label: "Custos Fixos" },
   { key: "investment", label: "Aporte & Fases" },
+  { key: "churn", label: "Churn" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -143,6 +145,7 @@ export default function FinancialDashboard() {
           />
         )}
         {tab === "investment" && <InvestmentView projectionRows={projectionRows} editableCosts={editableCosts} />}
+        {tab === "churn" && <ChurnView />}
 
         <div className="mt-8 text-xs text-muted-foreground/60">
           Ajustes recomendados: substituir COGS por plano por custos reais, calibrar CAC por plano com dados por canal, e validar impostos efetivos com contador.
