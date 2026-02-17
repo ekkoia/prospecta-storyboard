@@ -77,11 +77,14 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
           <ResponsiveContainer width="100%" height={isMobile ? 350 : 320}>
             <PieChart>
               <Pie data={distribution} cx="50%" cy="55%" labelLine={false}
- label={({ name, percent, x, y, textAnchor, fill }: any) => (
-                  <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 9 : 11}>
-                    {`${name}: ${(percent * 100).toFixed(0)}%`}
-                  </text>
-                )}
+ label={({ name, percent, x, y, textAnchor, fill }: any) => {
+                  const displayName = isMobile ? name.split(' (')[0] : name;
+                  return (
+                    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 9 : 11}>
+                      {`${displayName}: ${(percent * 100).toFixed(0)}%`}
+                    </text>
+                  );
+                }}
                 outerRadius={isMobile ? 80 : 110} dataKey="value">
                 {distribution.map((entry, idx) => (<Cell key={idx} fill={entry.color} />))}
               </Pie>
