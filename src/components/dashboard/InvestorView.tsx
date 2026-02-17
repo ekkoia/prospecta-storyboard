@@ -16,7 +16,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
     const activeCounts = planCounts(currentStatic.activeCustomers);
     const colors: Record<PlanKey, string> = { lite: "#94a3b8", starter: "#64748b", pro: "hsl(45, 95%, 63%)", enterprise: "hsl(45, 89%, 57%)" };
     return (Object.keys(activeCounts) as PlanKey[]).map((k) => ({
-      name: `${ASSUMPTIONS.plans[k].label} (R$${ASSUMPTIONS.plans[k].price})`,
+      name: ASSUMPTIONS.plans[k].label,
       value: activeCounts[k],
       color: colors[k],
     }));
@@ -72,11 +72,11 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
         </Section>
 
         <Section title="Distribuição de clientes por plano">
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer width="100%" height={360}>
             <PieChart>
               <Pie data={distribution} cx="50%" cy="50%" labelLine={false}
                 label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={110} dataKey="value">
+                outerRadius={90} dataKey="value">
                 {distribution.map((entry, idx) => (<Cell key={idx} fill={entry.color} />))}
               </Pie>
               <Tooltip formatter={(v: any) => `${v} clientes`} contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }} />
