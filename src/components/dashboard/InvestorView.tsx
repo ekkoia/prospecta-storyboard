@@ -75,14 +75,24 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
 
         <Section title="Distribuição de clientes por plano">
           <ResponsiveContainer width="100%" height={isMobile ? 350 : 320}>
-            <PieChart>
+            <PieChart style={{ outline: 'none' }}>
               <Pie data={distribution} cx="50%" cy="55%" labelLine={false}
                 activeIndex={-1}
+                activeShape={() => null}
                 label={({ name, percent, x, y, textAnchor, fill }: any) => {
                   const displayName = isMobile ? name.split(' (')[0] : name;
+                  const percentage = `${(percent * 100).toFixed(0)}%`;
+                  if (isMobile) {
+                    return (
+                      <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={10}>
+                        <tspan x={x} dy="0">{displayName}:</tspan>
+                        <tspan x={x} dy="1.2em">{percentage}</tspan>
+                      </text>
+                    );
+                  }
                   return (
-                    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 10 : 11}>
-                      {`${displayName}: ${(percent * 100).toFixed(0)}%`}
+                    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={11}>
+                      {`${displayName}: ${percentage}`}
                     </text>
                   );
                 }}
