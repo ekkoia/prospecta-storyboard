@@ -184,7 +184,7 @@ export function FixedCostsView({ costs, activeCustomers, onUpdate, onReset }: {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <KpiCard title="RH (BRL)" value={brl(rhTotal)} icon={Users} />
         <KpiCard title="Ferramentas (BRL)" value={brl(toolsBrlTotal)} icon={Wrench} />
         <KpiCard title="SaaS (USD→BRL)" value={brl(toolsUsdTotalBrl)} sub={`US$ ${toolsUsdTotalUsd}`} icon={Globe} />

@@ -52,7 +52,7 @@ export function UnitCostView({ last, projectionRows }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         <KpiCard title="COGS por cliente (mês 12)" value={brl(last.cogsPerActive)} sub="inclui voz (se habilitado)" />
         <KpiCard title="Fixos por cliente (mês 12)" value={brl(last.fixedPerActive)} sub="fixos / clientes ativos" />
         <KpiCard title="Custo unitário (sem mkt)" value={brl(last.unitCostPerActiveExMarketing)} sub="COGS + rateio fixo" />

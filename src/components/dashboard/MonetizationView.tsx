@@ -57,7 +57,7 @@ export function MonetizationView({ projectionRows, last, mode }: Props) {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         <KpiCard title="Receita total (mês 12)" value={brl(last.revenueTotal)} sub="soma de todas as fontes" />
         <KpiCard title="ARPU (mês 12)" value={brl(last.arpu)} sub="ticket médio por cliente ativo" />
         <KpiCard title="Uplift Money Models" value={upliftPct > 0 ? `+${pct(upliftPct)}` : "0%"} sub="acréscimo sobre assinaturas" />
