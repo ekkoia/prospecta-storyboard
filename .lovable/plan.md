@@ -1,51 +1,56 @@
 
 
-# Corrigir Labels do Pie Chart Cortados em Mobile
+# Ajustes no Grafico de Pizza Mobile
 
-## Problema
-No mobile (390px), os labels do grafico de pizza estao sendo cortados nas bordas. Textos como "Enterprise (R$4497): 5%" e "Starter (R$897): 35%" sao longos demais para o espaco disponivel, mesmo com outerRadius reduzido para 80 e fontSize 9.
+## Problemas
+
+1. **Grafico pequeno demais** -- `outerRadius` de 80 e `fontSize` de 9 deixam o grafico e os labels muito pequenos no mobile.
+2. **Quadrado ao redor da fatia ao clicar** -- O Recharts aplica um `stroke` branco nas fatias do `<Pie>` por padrao, e ao interagir aparece um contorno retangular (cursor/outline). Precisa remover o `activeShape` e o cursor do Tooltip.
 
 ## Solucao
 
 ### Arquivo: `src/components/dashboard/InvestorView.tsx`
 
-Encurtar os labels em mobile, mostrando apenas a abreviacao do plano sem o preco. O preco ja aparece no tooltip ao tocar.
+**1. Aumentar o grafico no mobile:**
+- `outerRadius`: de 80 para 100
+- `fontSize`: de 9 para 10
 
-**Mobile**: mostrar apenas "Lite: 45%" em vez de "Lite (R$397): 45%"
-**Desktop**: manter o formato completo "Lite (R$397): 45%"
+**2. Remover o quadrado/contorno ao clicar na fatia:**
+- Adicionar `activeShape={undefined}` (ou `activeIndex={-1}`) no `<Pie>` para desabilitar o efeito de destaque da fatia ativa
+- Adicionar `cursor={false}` no `<Tooltip>` para remover o cursor retangular que aparece ao interagir
+- Adicionar `stroke="none"` nas `<Cell>` para remover o contorno branco das fatias
 
-Mudancas:
-
-1. No `useMemo` de `distribution`, adicionar um campo `shortName` com apenas o label do plano (sem preco):
-
-```tsx
-return (Object.keys(activeCounts) as PlanKey[]).map((k) => ({
-  name: `${ASSUMPTIONS.plans[k].label} (R$${ASSUMPTIONS.plans[k].price})`,
-  shortName: ASSUMPTIONS.plans[k].label,
-  value: activeCounts[k],
-  color: colors[k],
-}));
-```
-
-2. No render function do `label`, usar `shortName` em mobile e `name` em desktop. Como o Recharts passa as propriedades do data item no callback, podemos acessar diretamente:
+### Codigo resultante (trecho relevante):
 
 ```tsx
-label={({ name, percent, x, y, textAnchor, fill }: any) => {
-  const displayName = isMobile ? name.split(' (')[0] : name;
-  return (
-    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 9 : 11}>
-      {`${displayName}: ${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-}}
+<Pie data={distribution} cx="50%" cy="55%" labelLine={false}
+  activeIndex={-1}
+  label={({ name, percent, x, y, textAnchor, fill }: any) => {
+    const displayName = isMobile ? name.split(' (')[0] : name;
+    return (
+      <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 10 : 11}>
+        {`${displayName}: ${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  }}
+  outerRadius={isMobile ? 100 : 110} dataKey="value">
+  {distribution.map((entry, idx) => (
+    <Cell key={idx} fill={entry.color} stroke="none" />
+  ))}
+</Pie>
+<Tooltip
+  cursor={false}
+  formatter={(v: any) => `${v} clientes`}
+  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+  itemStyle={{ color: "hsl(var(--foreground))" }}
+  labelStyle={{ color: "hsl(var(--foreground))" }}
+/>
 ```
-
-Isso resolve o corte sem perder informacao (o preco continua visivel no tooltip).
 
 ## Resumo
 
-- Um unico arquivo modificado: `InvestorView.tsx`
-- Labels mobile ficam curtos ("Lite: 45%") para nao cortar
-- Labels desktop mantidos completos ("Lite (R$397): 45%")
-- Preco continua acessivel via tooltip
+- Um unico arquivo modificado
+- Grafico maior e mais legivel no mobile (outerRadius 100, fontSize 10)
+- Quadrado/contorno removido ao interagir com fatias (activeIndex={-1}, cursor={false}, stroke="none")
+- Tooltip continua funcionando normalmente mostrando os dados
 
