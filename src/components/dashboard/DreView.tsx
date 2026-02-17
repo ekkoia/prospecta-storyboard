@@ -34,7 +34,7 @@ export function DreView({ currentStatic, projectionRows }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         <KpiCard title="Receita total (cenário)" value={brl(currentStatic.revenueTotal)} sub="assinaturas + extras" />
         <KpiCard title="COGS total" value={brl(currentStatic.cogsTotal)} sub="variáveis (incl. voz)" />
         <KpiCard title="Marketing líquido" value={brl(currentStatic.marketingNet)} sub="gasto do mês" />

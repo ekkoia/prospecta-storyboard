@@ -46,7 +46,7 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard title="Novos clientes/mês" value={`${avgNewPerMonth}`} sub="média (rampa progressiva)" />
         <KpiCard title="Novos mês 1" value={`${newSchedule[0]}`} sub="início da rampa" />
         <KpiCard title="Novos mês 12" value={`${newSchedule[11]}`} sub="fim da rampa" />
@@ -141,7 +141,7 @@ export function AcquisitionView({ projectionRows, avgNewPerMonth, newSchedule, l
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-accent/60 border border-border rounded-lg p-4 text-center">
               <div className="text-muted text-xs mb-1">Clientes novos/mês</div>
               <div className="text-2xl font-semibold text-foreground">{clientesNovos.toFixed(1)}</div>

@@ -4,6 +4,7 @@ import { ASSUMPTIONS, brl, pct, planCounts, type MonthResult, type PlanKey } fro
 import { AlertTriangle } from "lucide-react";
 import { KpiCard } from "./KpiCard";
 import { Section } from "./Section";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   currentStatic: MonthResult;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function InvestorView({ currentStatic, churnRate, staticScenarios }: Props) {
+  const isMobile = useIsMobile();
   const distribution = useMemo(() => {
     const activeCounts = planCounts(currentStatic.activeCustomers);
     const colors: Record<PlanKey, string> = { lite: "#94a3b8", starter: "#64748b", pro: "hsl(45, 95%, 63%)", enterprise: "hsl(45, 89%, 57%)" };
@@ -34,7 +36,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <KpiCard title="Clientes Ativos" value={`${currentStatic.activeCustomers}`} sub={`Churn: ${pct(churnRate)} · Repos.: ${currentStatic.newCustomers}/mês`} />
         <KpiCard title="Receita Total" value={brl(currentStatic.revenueTotal)} sub="Recorrência + Money Models" />
         <KpiCard title="Lucro Líquido" value={brl(currentStatic.profit)} sub={`Margem: ${pct(currentStatic.margin)}`} />
@@ -72,15 +74,15 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
         </Section>
 
         <Section title="Distribuição de clientes por plano">
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer width="100%" height={isMobile ? 350 : 320}>
             <PieChart>
               <Pie data={distribution} cx="50%" cy="55%" labelLine={false}
-label={({ name, percent, x, y, textAnchor, fill }: any) => (
-                  <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={11}>
+ label={({ name, percent, x, y, textAnchor, fill }: any) => (
+                  <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={isMobile ? 9 : 11}>
                     {`${name}: ${(percent * 100).toFixed(0)}%`}
                   </text>
                 )}
-                outerRadius={110} dataKey="value">
+                outerRadius={isMobile ? 80 : 110} dataKey="value">
                 {distribution.map((entry, idx) => (<Cell key={idx} fill={entry.color} />))}
               </Pie>
               <Tooltip formatter={(v: any) => `${v} clientes`} contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} itemStyle={{ color: "hsl(var(--foreground))" }} labelStyle={{ color: "hsl(var(--foreground))" }} />
