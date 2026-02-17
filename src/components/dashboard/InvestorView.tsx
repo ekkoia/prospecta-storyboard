@@ -74,7 +74,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
         <Section title="Distribuição de clientes por plano">
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>
-              <Pie data={distribution} cx="50%" cy="50%" labelLine={false}
+              <Pie data={distribution} cx="50%" cy="55%" labelLine={false}
 label={({ name, percent, x, y, textAnchor, fill }: any) => (
                   <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={11}>
                     {`${name}: ${(percent * 100).toFixed(0)}%`}
