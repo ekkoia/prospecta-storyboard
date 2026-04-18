@@ -12,7 +12,7 @@ export const brl = (v: number) =>
 
 export const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits)}%`;
 
-export type PlanKey = "lite" | "starter" | "pro" | "enterprise";
+export type PlanKey = "basic" | "lite" | "starter" | "pro" | "enterprise";
 
 export interface CostItem {
   id: string;
@@ -85,15 +85,16 @@ export const ASSUMPTIONS = {
     { price: 3997, minutes: 2000 },
   ],
   plans: {
+    basic: { label: "Basic", price: 147, includedSearches: 300, includedWhatsApps: 1, includedVoiceMinutes: 0 },
     lite: { label: "Lite", price: 397, includedSearches: 1000, includedWhatsApps: 1, includedVoiceMinutes: 0 },
     starter: { label: "Starter", price: 897, includedSearches: 1500, includedWhatsApps: 1, includedVoiceMinutes: 0 },
     pro: { label: "Pro", price: 1997, includedSearches: 5000, includedWhatsApps: 2, includedVoiceMinutes: 150 },
     enterprise: { label: "Enterprise", price: 4497, includedSearches: 18000, includedWhatsApps: 4, includedVoiceMinutes: 350 },
   } as Record<PlanKey, { label: string; price: number; includedSearches: number; includedWhatsApps: number; includedVoiceMinutes: number }>,
-  mix: { lite: 0.45, starter: 0.35, pro: 0.15, enterprise: 0.05 } as Record<PlanKey, number>,
+  mix: { basic: 0.25, lite: 0.35, starter: 0.28, pro: 0.09, enterprise: 0.03 } as Record<PlanKey, number>,
   churnMonthlyBase: 0.035,
   churnMonthlyPessimistic: 0.06,
-  cacByPlanGross: { lite: 220, starter: 350, pro: 700, enterprise: 1600 } as Record<PlanKey, number>,
+  cacByPlanGross: { basic: 120, lite: 220, starter: 350, pro: 700, enterprise: 1600 } as Record<PlanKey, number>,
   paidTest: { enabled: true, price: 49, attachRateOfNewCustomers: 0.7, creditToCAC: 1.0 },
   onboarding: { enabled: true, price: 397, attachRateOfNewCustomers: 0.25 },
   upsells: {
@@ -107,7 +108,7 @@ export const ASSUMPTIONS = {
     avgRevenuePerBuyer: 1250,
     cogsRateOfVoiceRevenue: 0.50,
   },
-  cogsByPlan: { lite: 95, starter: 140, pro: 734, enterprise: 1815 } as Record<PlanKey, number>,
+  cogsByPlan: { basic: 28, lite: 95, starter: 140, pro: 734, enterprise: 1815 } as Record<PlanKey, number>,
   fixedMonthlyCosts: {
     support: 1000, automationManager: 1300, closerFixed: 500, accounting: 450,
     videoProduction: 1800, infra: 245, lovable: 1000, gptClaude: 300, db: 180, domain: 150,
@@ -182,7 +183,7 @@ export function planCounts(totalActive: number) {
   const m = ASSUMPTIONS.mix;
   const keys = Object.keys(m) as PlanKey[];
   const raw = keys.map((k) => ({ k, v: totalActive * m[k] }));
-  const out: Record<PlanKey, number> = { lite: 0, starter: 0, pro: 0, enterprise: 0 };
+  const out: Record<PlanKey, number> = { basic: 0, lite: 0, starter: 0, pro: 0, enterprise: 0 };
   raw.forEach((r) => (out[r.k] = Math.floor(r.v)));
   let remaining = totalActive - keys.reduce((a, k) => a + out[k], 0);
   const frac = raw.map((r) => ({ k: r.k, frac: r.v - Math.floor(r.v) })).sort((a, b) => b.frac - a.frac);
