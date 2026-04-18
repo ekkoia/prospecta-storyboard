@@ -98,7 +98,7 @@ export const ASSUMPTIONS = {
   churnMonthlyBase: 0.035,
   churnMonthlyPessimistic: 0.06,
   cacByPlanGross: { basic: 120, lite: 220, starter: 350, pro: 700, enterprise: 1600 } as Record<PlanKey, number>,
-  paidTest: { enabled: true, price: 49, attachRateOfNewCustomers: 0.7, creditToCAC: 1.0 },
+  paidTest: { enabled: true, price: 49, attachRateOfNewCustomers: 0.7, conversionRate: 0.5, creditToCAC: 0 },
   onboarding: { enabled: true, price: 397, attachRateOfNewCustomers: 0.25 },
   upsells: {
     enabled: true,
@@ -296,7 +296,14 @@ export function monthModel(params: {
   const newTotal = Math.round(params.newTarget ?? 0);
   const newCounts = planCounts(newTotal);
 
-  const subscriptionRevenue = revenueFromPlans(activeCounts);
+  const testersTotal = newTotal * ASSUMPTIONS.paidTest.attachRateOfNewCustomers;
+  const paidTestRevenue = ASSUMPTIONS.paidTest.enabled ? testersTotal * ASSUMPTIONS.paidTest.price : 0;
+  const converters = testersTotal * ASSUMPTIONS.paidTest.conversionRate;
+  const nonConverters = testersTotal * (1 - ASSUMPTIONS.paidTest.conversionRate);
+  const paidTestDiscount = ASSUMPTIONS.paidTest.enabled ? converters * ASSUMPTIONS.paidTest.price : 0;
+  const paidTestNetRevenue = ASSUMPTIONS.paidTest.enabled ? nonConverters * ASSUMPTIONS.paidTest.price : 0;
+
+  const subscriptionRevenue = revenueFromPlans(activeCounts) - paidTestDiscount;
   const onbR = hormozi ? onboardingRev(newTotal).onboardingRevenue : 0;
   const upR = hormozi ? upsellRev(Math.round(active)).upsellRevenue : 0;
   const { voiceRevenue: vR, voiceCogs: vC } = hormozi ? voiceRev(Math.round(active)) : { voiceRevenue: 0, voiceCogs: 0 };
@@ -331,7 +338,7 @@ export function monthModel(params: {
     cogsTotal,
     fixedCosts: fixedTotal,
     marketingGross: acq.marketingGross,
-    paidTestRevenue: acq.paidTestRevenue,
+    paidTestRevenue,
     marketingNet: acq.marketingNet,
     closerCommission: commission,
     taxRate: taxes.rate,
