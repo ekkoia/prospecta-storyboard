@@ -16,7 +16,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
   const isMobile = useIsMobile();
   const distribution = useMemo(() => {
     const activeCounts = planCounts(currentStatic.activeCustomers);
-    const colors: Record<PlanKey, string> = { lite: "#94a3b8", starter: "#64748b", pro: "hsl(45, 95%, 63%)", enterprise: "hsl(45, 89%, 57%)" };
+    const colors: Record<PlanKey, string> = { basic: "#cbd5e1", lite: "#94a3b8", starter: "#64748b", pro: "hsl(45, 95%, 63%)", enterprise: "hsl(45, 89%, 57%)" };
     return (Object.keys(activeCounts) as PlanKey[]).map((k) => ({
       name: `${ASSUMPTIONS.plans[k].label} (R$${ASSUMPTIONS.plans[k].price})`,
       value: activeCounts[k],

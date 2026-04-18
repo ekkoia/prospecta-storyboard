@@ -108,7 +108,7 @@ export const ASSUMPTIONS = {
     avgRevenuePerBuyer: 1250,
     cogsRateOfVoiceRevenue: 0.50,
   },
-  cogsByPlan: { lite: 95, starter: 140, pro: 734, enterprise: 1815 } as Record<PlanKey, number>,
+  cogsByPlan: { basic: 28, lite: 95, starter: 140, pro: 734, enterprise: 1815 } as Record<PlanKey, number>,
   fixedMonthlyCosts: {
     support: 1000, automationManager: 1300, closerFixed: 500, accounting: 450,
     videoProduction: 1800, infra: 245, lovable: 1000, gptClaude: 300, db: 180, domain: 150,
@@ -183,7 +183,7 @@ export function planCounts(totalActive: number) {
   const m = ASSUMPTIONS.mix;
   const keys = Object.keys(m) as PlanKey[];
   const raw = keys.map((k) => ({ k, v: totalActive * m[k] }));
-  const out: Record<PlanKey, number> = { lite: 0, starter: 0, pro: 0, enterprise: 0 };
+  const out: Record<PlanKey, number> = { basic: 0, lite: 0, starter: 0, pro: 0, enterprise: 0 };
   raw.forEach((r) => (out[r.k] = Math.floor(r.v)));
   let remaining = totalActive - keys.reduce((a, k) => a + out[k], 0);
   const frac = raw.map((r) => ({ k: r.k, frac: r.v - Math.floor(r.v) })).sort((a, b) => b.frac - a.frac);
