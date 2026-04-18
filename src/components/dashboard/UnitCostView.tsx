@@ -27,6 +27,7 @@ export function UnitCostView({ last, projectionRows }: Props) {
         margemBruta: price > 0 ? (price - cogs) / price : 0,
         fixedAlloc: fixed / activeCount,
         unitCostTotal: cogs + fixed / activeCount,
+        margemLiquida: price > 0 ? (price - cogs - fixed / activeCount) / price : 0,
       };
     });
   }, [activeCount]);
@@ -103,7 +104,7 @@ export function UnitCostView({ last, projectionRows }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b-2 border-border">
-                {["Plano", "Preço", "COGS (variável)", "Margem Bruta", "Fixos/cliente", "Custo total/cliente"].map((h, i) => (
+                {["Plano", "Preço", "COGS (variável)", "Margem Bruta", "Fixos/cliente", "Custo total/cliente", "Margem Líquida"].map((h, i) => (
                   <th key={h} className={`${i === 0 ? "text-left" : "text-right"} uppercase text-xs tracking-wider text-muted font-medium py-3 px-3`}>{h}</th>
                 ))}
               </tr>
@@ -117,6 +118,7 @@ export function UnitCostView({ last, projectionRows }: Props) {
                   <td className="py-3 px-3 text-right text-foreground/80 font-medium">{pct(r.margemBruta)}</td>
                   <td className="py-3 px-3 text-right text-muted-foreground">{brl(r.fixedAlloc)}</td>
                   <td className="py-3 px-3 text-right text-foreground font-medium">{brl(r.unitCostTotal)}</td>
+                  <td className="py-3 px-3 text-right text-foreground/80 font-medium">{pct(r.margemLiquida)}</td>
                 </tr>
               ))}
             </tbody>
