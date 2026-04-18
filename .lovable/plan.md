@@ -1,58 +1,60 @@
 
 
-# Nova Aba "Churn" no Dashboard
+# Adicionar Plano Basic ao Financial Engine
 
-## Objetivo
-Adicionar uma aba "Churn" ao dashboard financeiro para exibir a analise completa de churn das versoes V1 e V2 do Prospecta, incluindo dados agregados, perfis individuais e insights estrategicos.
+## Escopo
+Adicionar o novo plano "Basic" (R$ 147) como o primeiro tier, antes do Lite. Verifiquei e apenas dois arquivos referenciam planos diretamente — os demais (UnitCostView, etc.) iteram dinamicamente via `Object.keys(ASSUMPTIONS.plans)` e vão absorver o novo plano automaticamente.
 
-## Estrutura da Aba
+## Alterações
 
-A aba tera 4 secoes principais:
+### 1. `src/lib/financial-engine.ts`
 
-### 1. KPI Cards (topo)
-- **V1 - Total Vendas**: 41
-- **V2 - Total Vendas**: 17
-- **V1 - Faturamento**: R$ 9.477
-- **V2 - Faturamento**: R$ 29.995
+**Linha 15** — Adicionar `basic` ao tipo:
+```ts
+export type PlanKey = "basic" | "lite" | "starter" | "pro" | "enterprise";
+```
 
-### 2. Secao "Contexto V1 vs V2"
-Dois cards lado a lado com resumo de cada versao:
-- V1: MVP embrionario, processo manual, busca GMB + fluxo SDR/BDR, tempo entrega ~3 dias, bugs frequentes
-- V2: SaaS estruturado, salto de faturamento, desafios operacionais e de experiencia
+**Bloco `plans` (linhas 88-92)** — Adicionar Basic antes do Lite:
+```ts
+basic: { label: "Basic", price: 147, includedSearches: 300, includedWhatsApps: 1, includedVoiceMinutes: 0 },
+lite: { label: "Lite", price: 397, ... },
+// ... demais planos
+```
 
-### 3. Secao "Categorias de Churn" (V2)
-- Grafico de pizza ou barras horizontais mostrando a distribuicao por categoria (Pre-Ativacao 28.6%, Imaturidade 14.3%, Contexto Externo 14.3%, Silencioso 14.3%, Fantasma 14.3%, Fraudulento 14.3%)
-- Tabela resumo com categoria, clientes e percentual
+**Linha 93** — Rebalancear o mix:
+```ts
+mix: { basic: 0.25, lite: 0.35, starter: 0.28, pro: 0.09, enterprise: 0.03 } as Record<PlanKey, number>,
+```
 
-### 4. Secao "Perfis de Churn" (V2)
-Cards expansiveis (collapsible) para cada cliente com:
-- Nome, plano, permanencia, uso, motivo
-- Diagnostico detalhado
-- Status de resolucao (quando aplicavel)
+**Linha 96** — CAC bruto:
+```ts
+cacByPlanGross: { basic: 120, lite: 220, starter: 350, pro: 700, enterprise: 1600 } as Record<PlanKey, number>,
+```
 
-### 5. Secao "Causas Principais V2"
-Lista das 7 causas com status (resolvido, em andamento, pendente) usando badges coloridos
+**Linha 110** — COGS por plano:
+```ts
+cogsByPlan: { basic: 28, lite: 95, starter: 140, pro: 734, enterprise: 1815 } as Record<PlanKey, number>,
+```
 
-### 6. Secao "Insight Principal"
-Card destacado com o insight de que 43% do churn ocorre antes da ativacao
+**Linha 185** — Inicialização do `out` no `planCounts`:
+```ts
+const out: Record<PlanKey, number> = { basic: 0, lite: 0, starter: 0, pro: 0, enterprise: 0 };
+```
 
-## Detalhes Tecnicos
+### 2. `src/components/dashboard/InvestorView.tsx`
 
-### Arquivos a criar:
-1. **`src/lib/churn-data.ts`** — Dados estaticos do churn (V1, V2, perfis de clientes, categorias, causas). Tudo tipado com interfaces TypeScript.
+**Linha 19** — Adicionar cor do Basic ao mapa de cores do gráfico de pizza:
+```ts
+const colors: Record<PlanKey, string> = { basic: "#cbd5e1", lite: "#94a3b8", starter: "#64748b", pro: "hsl(45, 95%, 63%)", enterprise: "hsl(45, 89%, 57%)" };
+```
 
-2. **`src/components/dashboard/ChurnView.tsx`** — Componente da aba, usando os mesmos padroes visuais do dashboard (Section, KpiCard, cards com bg-card/border-border/rounded-2xl). Incluira:
-   - Graficos Recharts para distribuicao de categorias
-   - Collapsible do Radix para perfis individuais
-   - Badges para status das causas
+## Verificação de Outros Arquivos
 
-### Arquivos a modificar:
-1. **`src/components/dashboard/FinancialDashboard.tsx`**:
-   - Adicionar `{ key: "churn", label: "Churn" }` ao array TABS
-   - Importar e renderizar `ChurnView` quando `tab === "churn"`
+Busquei por todas as referências a `PlanKey`, `ASSUMPTIONS.plans`, `cogsByPlan` e `cacByPlanGross`:
 
-### Padroes seguidos:
-- Mesmo estilo visual dos outros views (Section, KpiCard, cards com shadow-card)
-- Responsivo mobile com grids adaptativos (grid-cols-1 sm:grid-cols-2)
-- Dados hardcoded em arquivo separado (sem backend necessario)
-- Componentes Radix ja instalados (Collapsible) para os perfis expansiveis
+- **`UnitCostView.tsx`** — Itera com `Object.keys(ASSUMPTIONS.plans)`. Sem mudanças necessárias, vai exibir Basic automaticamente na tabela e no cálculo de margem ponderada.
+- **`InvestorView.tsx`** — Apenas o objeto `colors` precisa de update (acima).
+- **Demais views (Dre, Acquisition, FixedCosts, etc.)** — Não referenciam planos individualmente; consomem `MonthResult` agregado.
+
+Soma do novo mix: 0.25 + 0.35 + 0.28 + 0.09 + 0.03 = **1.00** ✓
+
