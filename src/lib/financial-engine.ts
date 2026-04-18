@@ -89,10 +89,10 @@ export const ASSUMPTIONS = {
   ],
   plans: {
     basic: { label: "Basic", price: 147, includedSearches: 300, includedWhatsApps: 1, includedVoiceMinutes: 0 },
-    lite: { label: "Lite", price: 397, includedSearches: 1000, includedWhatsApps: 1, includedVoiceMinutes: 0 },
-    starter: { label: "Starter", price: 897, includedSearches: 1500, includedWhatsApps: 1, includedVoiceMinutes: 0 },
+    lite: { label: "Lite", price: 297, includedSearches: 1000, includedWhatsApps: 1, includedVoiceMinutes: 0 },
+    starter: { label: "Starter", price: 797, includedSearches: 1500, includedWhatsApps: 1, includedVoiceMinutes: 0 },
     pro: { label: "Pro", price: 1997, includedSearches: 5000, includedWhatsApps: 2, includedVoiceMinutes: 150 },
-    enterprise: { label: "Enterprise", price: 4497, includedSearches: 18000, includedWhatsApps: 4, includedVoiceMinutes: 350 },
+    enterprise: { label: "Enterprise", price: 4447, includedSearches: 18000, includedWhatsApps: 4, includedVoiceMinutes: 350 },
   } as Record<PlanKey, { label: string; price: number; includedSearches: number; includedWhatsApps: number; includedVoiceMinutes: number }>,
   mix: { basic: 0.25, lite: 0.35, starter: 0.28, pro: 0.09, enterprise: 0.03 } as Record<PlanKey, number>,
   churnMonthlyBase: 0.035,
