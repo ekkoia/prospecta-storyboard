@@ -54,10 +54,13 @@ export const DEFAULT_FIXED_COSTS: EditableCostsState = {
     { id: "gptClaude", label: "GPT / Claude", value: 300 },
     { id: "db", label: "Banco de Dados", value: 180 },
     { id: "domain", label: "Domínio", value: 150 },
+    { id: "leadsReceita", label: "Leads Receita (CNPJ)", value: 29.90 },
   ],
   toolsUsdItems: [
     { id: "serpApi", label: "SerpAPI", usd: 250 },
     { id: "instantly", label: "Instantly", usd: 97 },
+    { id: "resend", label: "Resend (email)", usd: 90 },
+    { id: "unipile", label: "Unipile LinkedIn API", usd: 5.5 },
   ],
   usdFx: 5.22,
   iofAndFeesRate: 0.08,
@@ -108,7 +111,7 @@ export const ASSUMPTIONS = {
     avgRevenuePerBuyer: 1250,
     cogsRateOfVoiceRevenue: 0.50,
   },
-  cogsByPlan: { basic: 28, lite: 95, starter: 140, pro: 734, enterprise: 1815 } as Record<PlanKey, number>,
+  cogsByPlan: { basic: 28, lite: 96, starter: 176, pro: 810, enterprise: 2005 } as Record<PlanKey, number>,
   fixedMonthlyCosts: {
     support: 1000, automationManager: 1300, closerFixed: 500, accounting: 450,
     videoProduction: 1800, infra: 245, lovable: 1000, gptClaude: 300, db: 180, domain: 150,
