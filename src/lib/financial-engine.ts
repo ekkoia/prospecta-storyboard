@@ -12,7 +12,7 @@ export const brl = (v: number) =>
 
 export const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits)}%`;
 
-export type PlanKey = "lite" | "starter" | "pro" | "enterprise";
+export type PlanKey = "basic" | "lite" | "starter" | "pro" | "enterprise";
 
 export interface CostItem {
   id: string;
