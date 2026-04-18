@@ -65,7 +65,7 @@ export function InvestorView({ currentStatic, churnRate, staticScenarios }: Prop
             ))}
           </div>
           <div className="mt-3 text-xs text-muted-foreground/70 leading-relaxed space-y-1">
-            <div><span className="text-foreground/70 font-medium">Tradução:</span> CAC bruto = investimento total em tráfego por cliente. CAC líquido = após abater receita do teste pago. Marketing = gasto do mês.</div>
+            <div><span className="text-foreground/70 font-medium">Tradução:</span> CAC bruto = investimento total em tráfego por cliente. O teste pago (R$ 49) agora é abatido na 1ª mensalidade do cliente, não no CAC. Marketing = gasto do mês.</div>
             <div className="flex items-start gap-1.5">
               <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
               <span><span className="text-foreground/70 font-medium">Pessimista:</span> churn maior exige mais reposições, e o CAC dobrado encarece cada aquisição — por isso o custo de marketing sobe desproporcionalmente.</span>
